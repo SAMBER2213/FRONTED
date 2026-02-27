@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Hoy from './pages/Hoy'
 import Crear from './pages/Crear'
 import Actividad from './pages/Actividad'
@@ -8,7 +8,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Hoy />} />
+        <Route path="/" element={<Navigate to="/hoy" />} />
         <Route path="/hoy" element={<Hoy />} />
         <Route path="/crear" element={<Crear />} />
         <Route path="/actividad/:id" element={<Actividad />} />
