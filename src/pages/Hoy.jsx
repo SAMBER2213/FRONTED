@@ -20,7 +20,7 @@ export default function Hoy() {
         </div>
 
         <button onClick={() => navigate('/hoy')} style={navStyle(true)}>📅 Hoy</button>
-        <button onClick={() => navigate('/actividad/1')} style={navStyle(false)}>📋 Actividades</button>
+        <button onClick={() => navigate('/actividad')} style={navStyle(false)}>📋 Actividades</button>
         <button onClick={() => navigate('/progreso')} style={navStyle(false)}>📊 Progreso</button>
 
         <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid #2a2a32' }}>
