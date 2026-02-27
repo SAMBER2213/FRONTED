@@ -15,7 +15,7 @@ export default function Hoy() {
           <div style={{ fontSize: '1rem', fontWeight: 700, color: '#7c6dfa' }}>📚 Planificador</div>
           <div style={{ fontSize: '0.78rem', color: '#6b6a7a', marginTop: '2px' }}>
             <span style={{ width: 6, height: 6, background: '#f0a500', borderRadius: '50%', display: 'inline-block', marginRight: 5 }}></span>
-            Demo · demo@univalle.edu.co
+            Prototipo · demo@univalle.edu.co
           </div>
         </div>
 
