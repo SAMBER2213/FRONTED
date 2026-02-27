@@ -1,0 +1,10 @@
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+```
+
+Guarda con **Ctrl + S**, luego ve a GitHub Desktop, haz commit con el mensaje:
+```
+chore: configurar rutas para Vercel
