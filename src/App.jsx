@@ -8,6 +8,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Hoy />} />
         <Route path="/hoy" element={<Hoy />} />
         <Route path="/crear" element={<Crear />} />
         <Route path="/actividad/:id" element={<Actividad />} />
