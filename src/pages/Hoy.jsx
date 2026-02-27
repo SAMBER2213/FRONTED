@@ -15,12 +15,12 @@ export default function Hoy() {
           <div style={{ fontSize: '1rem', fontWeight: 700, color: '#7c6dfa' }}>📚 Planificador</div>
           <div style={{ fontSize: '0.78rem', color: '#6b6a7a', marginTop: '2px' }}>
             <span style={{ width: 6, height: 6, background: '#f0a500', borderRadius: '50%', display: 'inline-block', marginRight: 5 }}></span>
-            Prototipo · demo@univalle.edu.co
+            Prototipo· prototipo@univalle.edu.co
           </div>
         </div>
 
         <button onClick={() => navigate('/hoy')} style={navStyle(true)}>📅 Hoy</button>
-        <button onClick={() => navigate('/actividades')} style={navStyle(false)}>📋 Actividades</button>
+        <button onClick={() => navigate('/actividad/1')} style={navStyle(false)}>📋 Actividades</button>
         <button onClick={() => navigate('/progreso')} style={navStyle(false)}>📊 Progreso</button>
 
         <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid #2a2a32' }}>
