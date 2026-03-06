@@ -147,9 +147,9 @@ export function Sidebar({ navigate, actual }) {
         <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#f0eff5', marginTop: 4 }}>{nombre}</div>
         <div style={{ fontSize: '0.75rem', color: '#6b6a7a', marginTop: 1 }}>{correo}</div>
       </div>
+      <button onClick={() => navigate('/crear')} style={nav(actual === 'crear')}>➕ Crear actividad</button>
       <button onClick={() => navigate('/hoy')} style={nav(actual === 'hoy')}>📅 Hoy</button>
       <button onClick={() => navigate('/actividades')} style={nav(actual === 'actividades')}>📋 Actividades</button>
-      <button onClick={() => navigate('/crear')} style={nav(actual === 'crear')}>➕ Crear actividad</button>
       <button onClick={() => navigate('/progreso')} style={nav(actual === 'progreso')}>📊 Progreso</button>
       <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid #2a2a32' }}>
         <button onClick={cerrarSesion}
