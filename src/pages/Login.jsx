@@ -119,11 +119,11 @@ export default function Login() {
       </div>
     </div>
   )
-}
+<div style={{ width: 380, margin: '0 auto' }}>
 
 const inputStyle = {
   width: '100%', background: '#0f0f11', border: '1px solid #2a2a32',
   borderRadius: 10, padding: '11px 14px', color: '#f0eff5',
   fontFamily: 'DM Sans, sans-serif', fontSize: '0.9rem',
   outline: 'none', boxSizing: 'border-box'
-}
+}<div style={{ width: '100%', maxWidth: 400, padding: '0 16px' }}>
