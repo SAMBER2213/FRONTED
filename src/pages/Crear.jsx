@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { API } from '../api'
+
+const BASE_URL = 'https://backend-planificador-3sre.onrender.com'
 
 export default function Crear() {
   const navigate = useNavigate()
@@ -10,6 +11,7 @@ export default function Crear() {
   const [errores, setErrores] = useState({})
   const [exito, setExito] = useState(false)
   const [cargando, setCargando] = useState(false)
+  const [errorGeneral, setErrorGeneral] = useState(null)
 
   const tipos = ['Examen', 'Quiz', 'Taller', 'Proyecto', 'Otro']
 
@@ -25,30 +27,38 @@ export default function Crear() {
     const e = validar()
     if (Object.keys(e).length > 0) { setErrores(e); return }
     setCargando(true)
+    setErrorGeneral(null)
     try {
-      const res = await API.createActividad({
-        titulo: form.titulo,
-        tipo: form.tipo,
-        curso: form.curso,
-        fechaLimite: form.fechaLimite,
-        horasEstimadas: Number(form.horasEstimadas) || 0,
+      const res = await fetch(`${BASE_URL}/api/actividades/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          titulo: form.titulo,
+          tipo: form.tipo,
+          curso: form.curso,
+          fechaLimite: form.fechaLimite,
+          horasEstimadas: Number(form.horasEstimadas) || 0,
+        })
       })
+      const data = await res.json()
       if (!res.ok) {
-        setErrores(res.data.campos || { general: 'Error al guardar la actividad' })
+        setErrores(data.campos || {})
+        setErrorGeneral(data.error || 'Error al guardar')
         setCargando(false)
         return
       }
+      // Guardar subtareas una por una
       for (const sub of subtareas) {
-        await API.createSubtarea(res.data.id, {
-          nombre: sub.nombre,
-          fecha: sub.fecha,
-          horas: Number(sub.horas),
+        await fetch(`${BASE_URL}/api/actividades/${data.id}/subtareas/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre: sub.nombre, fecha: sub.fecha, horas: Number(sub.horas) })
         })
       }
       setExito(true)
       setTimeout(() => navigate('/hoy'), 1500)
-    } catch {
-      setErrores({ general: 'Error de conexión. Verifica que el servidor esté activo.' })
+    } catch (err) {
+      setErrorGeneral('Error de conexión: ' + err.message)
     }
     setCargando(false)
   }
@@ -65,7 +75,16 @@ export default function Crear() {
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', background: '#0f0f11', color: '#f0eff5' }}>
-      <Sidebar navigate={navigate} actual="actividades" />
+      <aside style={{ background: '#1a1a1f', borderRight: '1px solid #2a2a32', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ padding: '0 8px 20px', borderBottom: '1px solid #2a2a32', marginBottom: 8 }}>
+          <div style={{ fontSize: '1rem', fontWeight: 700, color: '#7c6dfa' }}>📚 Planificador</div>
+          <div style={{ fontSize: '0.78rem', color: '#6b6a7a', marginTop: 2 }}>Demo · demo@univalle.edu.co</div>
+        </div>
+        <button onClick={() => navigate('/hoy')} style={nav(false)}>📅 Hoy</button>
+        <button onClick={() => navigate('/crear')} style={nav(true)}>📋 Crear actividad</button>
+        <button onClick={() => navigate('/progreso')} style={nav(false)}>📊 Progreso</button>
+      </aside>
+
       <main style={{ padding: '36px 40px', maxWidth: 680 }}>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 4 }}>Crear actividad</h2>
         <p style={{ fontSize: '0.85rem', color: '#6b6a7a', marginBottom: 28 }}>Ingresa los datos de tu actividad evaluativa</p>
@@ -75,9 +94,9 @@ export default function Crear() {
             ✅ Actividad creada exitosamente. Redirigiendo...
           </div>
         )}
-        {errores.general && (
+        {errorGeneral && (
           <div style={{ background: 'rgba(240,74,74,0.1)', border: '1px solid #f04a4a', borderRadius: 10, padding: '12px 16px', marginBottom: 20, color: '#f04a4a', fontSize: '0.88rem' }}>
-            ⚠️ {errores.general}
+            ⚠️ {errorGeneral}
           </div>
         )}
 
@@ -171,20 +190,6 @@ function Campo({ label, error, children }) {
       {children}
       {error && <p style={{ fontSize: '0.75rem', color: '#f04a4a', marginTop: 4 }}>{error}</p>}
     </div>
-  )
-}
-
-function Sidebar({ navigate, actual }) {
-  return (
-    <aside style={{ background: '#1a1a1f', borderRight: '1px solid #2a2a32', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <div style={{ padding: '0 8px 20px', borderBottom: '1px solid #2a2a32', marginBottom: 8 }}>
-        <div style={{ fontSize: '1rem', fontWeight: 700, color: '#7c6dfa' }}>📚 Planificador</div>
-        <div style={{ fontSize: '0.78rem', color: '#6b6a7a', marginTop: 2 }}>Demo · demo@univalle.edu.co</div>
-      </div>
-      <button onClick={() => navigate('/hoy')} style={nav(actual === 'hoy')}>📅 Hoy</button>
-      <button onClick={() => navigate('/crear')} style={nav(actual === 'actividades')}>📋 Actividades</button>
-      <button onClick={() => navigate('/progreso')} style={nav(actual === 'progreso')}>📊 Progreso</button>
-    </aside>
   )
 }
 
