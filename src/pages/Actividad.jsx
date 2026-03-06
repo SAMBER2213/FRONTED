@@ -1,32 +1,30 @@
-// Actividad.jsx — Detalle de una actividad con sus subtareas, reprogramación y registro de avance
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { Sidebar, getHeaders } from './Sidebar'
 
 const BASE_URL = 'https://backend-planificador-3sre.onrender.com'
 
 export default function Actividad() {
   const navigate = useNavigate()
-  const { id } = useParams() // ID de la actividad tomado de la URL
+  const { id } = useParams()
   const [actividad, setActividad] = useState(null)
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
-  const [reprogramando, setReprogramando] = useState(null) // Subtarea que se está reprogramando
+  const [reprogramando, setReprogramando] = useState(null)
   const [nuevaFecha, setNuevaFecha] = useState('')
   const [nuevasHoras, setNuevasHoras] = useState('')
-  const [conflicto, setConflicto] = useState(null) // Datos del conflicto de sobrecarga detectado
-  const [avance, setAvance] = useState(null) // Subtarea en la que se está registrando avance
+  const [conflicto, setConflicto] = useState(null)
+  const [avance, setAvance] = useState(null)
   const [nota, setNota] = useState('')
-  const LIMITE_HORAS = 6 // Límite diario de horas
+  const LIMITE_HORAS = 6
 
-  // Carga la actividad cuando cambia el id en la URL
   useEffect(() => { cargar() }, [id])
 
-  // Obtiene la actividad y sus subtareas del backend
   async function cargar() {
     setCargando(true)
     setError(null)
     try {
-      const res = await fetch(`${BASE_URL}/api/actividades/${id}/`)
+      const res = await fetch(`${BASE_URL}/api/actividades/${id}/`, { headers: getHeaders() })
       if (!res.ok) throw new Error()
       const data = await res.json()
       if (data.error) { setError('Actividad no encontrada'); return }
@@ -37,7 +35,6 @@ export default function Actividad() {
     setCargando(false)
   }
 
-  // Abre el modal de reprogramación precargando los valores actuales de la subtarea
   function abrirReprogramar(sub) {
     setReprogramando(sub)
     setNuevaFecha(sub.fecha || '')
@@ -45,15 +42,12 @@ export default function Actividad() {
     setConflicto(null)
   }
 
-  // Verifica si la nueva fecha genera sobrecarga antes de confirmar
   async function confirmarReprogramacion() {
     const subs = actividad.subtareas || []
-    // Suma horas de otras subtareas en la misma fecha nueva
     const horasEnFecha = subs
       .filter(s => s.id !== reprogramando.id && s.fecha === nuevaFecha)
       .reduce((acc, s) => acc + Number(s.horas), 0)
     const total = horasEnFecha + Number(nuevasHoras)
-    // Si supera el límite muestra el conflicto, si no aplica directamente
     if (total > LIMITE_HORAS) {
       setConflicto({ total, limite: LIMITE_HORAS, fecha: nuevaFecha })
       return
@@ -61,26 +55,24 @@ export default function Actividad() {
     await aplicarReprogramacion()
   }
 
-  // Llama al backend para actualizar fecha y horas de la subtarea
   async function aplicarReprogramacion() {
     try {
       await fetch(`${BASE_URL}/api/actividades/${id}/subtareas/${reprogramando.id}/`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ fecha: nuevaFecha, horas: Number(nuevasHoras) })
       })
-      await cargar() // Recarga para reflejar los cambios
+      await cargar()
     } catch { alert('Error al reprogramar.') }
     setReprogramando(null)
     setConflicto(null)
   }
 
-  // Actualiza el estado de una subtarea a 'hecho' o 'pospuesto' con nota opcional
   async function registrarAvance(sub, estado) {
     try {
       await fetch(`${BASE_URL}/api/actividades/${id}/subtareas/${sub.id}/`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ estado, nota })
       })
       await cargar()
@@ -89,20 +81,17 @@ export default function Actividad() {
     setNota('')
   }
 
-  // Elimina la actividad completa y regresa a la lista
   async function eliminarActividad() {
     if (!confirm('¿Seguro que deseas eliminar esta actividad?')) return
-    await fetch(`${BASE_URL}/api/actividades/${id}/`, { method: 'DELETE' })
+    await fetch(`${BASE_URL}/api/actividades/${id}/`, { method: 'DELETE', headers: getHeaders() })
     navigate('/actividades')
   }
 
-  // Estados de carga y error
   if (cargando) return <Pantalla>Cargando actividad...</Pantalla>
   if (error) return <Pantalla error>{error}</Pantalla>
 
   const subtareas = actividad.subtareas || []
   const hechas = subtareas.filter(s => s.estado === 'hecho').length
-  // Calcula porcentaje de progreso
   const progreso = subtareas.length > 0 ? Math.round((hechas / subtareas.length) * 100) : 0
 
   return (
@@ -110,10 +99,8 @@ export default function Actividad() {
       <Sidebar navigate={navigate} actual="actividades" />
       <main style={{ padding: '36px 40px', maxWidth: 720 }}>
 
-        {/* Botón volver a la lista */}
         <button onClick={() => navigate('/actividades')} style={{ background: 'none', border: 'none', color: '#6b6a7a', cursor: 'pointer', fontSize: '0.85rem', marginBottom: 20, fontFamily: 'DM Sans, sans-serif' }}>← Volver</button>
 
-        {/* Header con título y botón eliminar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 24 }}>
           <div>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 4 }}>{actividad.titulo}</h2>
@@ -125,7 +112,6 @@ export default function Actividad() {
           </div>
         </div>
 
-        {/* Barra de progreso de subtareas */}
         <div style={{ background: '#1a1a1f', border: '1px solid #2a2a32', borderRadius: 14, padding: '16px 20px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
           <span style={{ fontSize: '0.82rem', color: '#6b6a7a' }}>Progreso</span>
           <div style={{ flex: 1, height: 6, background: '#2a2a32', borderRadius: 10, overflow: 'hidden' }}>
@@ -134,7 +120,6 @@ export default function Actividad() {
           <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.82rem', color: '#6b6a7a' }}>{hechas}/{subtareas.length} subtareas</span>
         </div>
 
-        {/* Alerta de conflicto de sobrecarga con opciones */}
         {conflicto && (
           <div style={{ background: 'rgba(240,74,74,0.1)', border: '1px solid #f04a4a', borderRadius: 12, padding: '16px 20px', marginBottom: 20 }}>
             <p style={{ color: '#f04a4a', fontWeight: 700, marginBottom: 6 }}>⚠️ Conflicto de sobrecarga detectado</p>
@@ -142,9 +127,7 @@ export default function Actividad() {
               El día <strong>{conflicto.fecha}</strong> quedaría con <strong>{conflicto.total}h</strong>, superando el límite de <strong>{conflicto.limite}h/día</strong>.
             </p>
             <div style={{ display: 'flex', gap: 10 }}>
-              {/* Permite forzar la reprogramación aunque haya sobrecarga */}
               <button onClick={aplicarReprogramacion} style={btnSec}>Reprogramar igual</button>
-              {/* Permite volver atrás para elegir otra fecha */}
               <button onClick={() => setConflicto(null)} style={btnPri}>Elegir otra fecha</button>
             </div>
           </div>
@@ -152,34 +135,28 @@ export default function Actividad() {
 
         <p style={labelSeccion}>Subtareas del plan</p>
 
-        {/* Estado vacío */}
         {subtareas.length === 0 && (
           <div style={{ textAlign: 'center', padding: '32px', color: '#6b6a7a', fontSize: '0.85rem' }}>Esta actividad no tiene subtareas.</div>
         )}
 
-        {/* Lista de subtareas */}
         {subtareas.map(sub => (
           <div key={sub.id} style={{ background: '#1a1a1f', border: `1px solid ${sub.estado === 'hecho' ? '#3bbfa3' : '#2a2a32'}`, borderRadius: 12, padding: '14px 18px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ flex: 1 }}>
-              {/* Nombre tachado si está hecho */}
               <div style={{ fontSize: '0.92rem', fontWeight: 500, textDecoration: sub.estado === 'hecho' ? 'line-through' : 'none', color: sub.estado === 'hecho' ? '#6b6a7a' : '#f0eff5' }}>{sub.nombre}</div>
               <div style={{ fontSize: '0.78rem', color: '#6b6a7a', marginTop: 3 }}>
                 {sub.fecha || 'Sin fecha'} · {sub.horas}h {sub.nota && `· 📝 ${sub.nota}`}
               </div>
             </div>
-            {/* Chip de estado: pendiente / pospuesto / hecho */}
             <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', padding: '3px 9px', borderRadius: 20, background: sub.estado === 'hecho' ? 'rgba(59,191,163,0.15)' : sub.estado === 'pospuesto' ? 'rgba(240,165,0,0.15)' : 'rgba(107,106,122,0.15)', color: sub.estado === 'hecho' ? '#3bbfa3' : sub.estado === 'pospuesto' ? '#f0a500' : '#6b6a7a' }}>
               {sub.estado === 'hecho' ? 'Hecho' : sub.estado === 'pospuesto' ? 'Pospuesto' : 'Pendiente'}
             </span>
             <button onClick={() => abrirReprogramar(sub)} style={{ background: 'none', border: '1px solid #2a2a32', borderRadius: 8, color: '#6b6a7a', fontSize: '0.78rem', padding: '4px 10px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Reprogramar</button>
-            {/* Solo muestra "Registrar" si la subtarea no está hecha */}
             {sub.estado !== 'hecho' && (
               <button onClick={() => { setAvance(sub); setNota('') }} style={{ background: 'none', border: '1px solid #7c6dfa', borderRadius: 8, color: '#7c6dfa', fontSize: '0.78rem', padding: '4px 10px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Registrar</button>
             )}
           </div>
         ))}
 
-        {/* Modal reprogramar subtarea */}
         {reprogramando && !conflicto && (
           <div style={overlay}>
             <div style={modal}>
@@ -197,7 +174,6 @@ export default function Actividad() {
           </div>
         )}
 
-        {/* Modal registrar avance */}
         {avance && (
           <div style={overlay}>
             <div style={modal}>
@@ -207,9 +183,7 @@ export default function Actividad() {
               <input placeholder="Ej: Completé los ejercicios 1 al 5" value={nota} onChange={e => setNota(e.target.value)} style={{ ...inp, marginBottom: 20 }} />
               <div style={{ display: 'flex', gap: 10 }}>
                 <button onClick={() => setAvance(null)} style={btnSec}>Cancelar</button>
-                {/* Posponer — marca como pospuesto para reprogramar después */}
                 <button onClick={() => registrarAvance(avance, 'pospuesto')} style={{ ...btnSec, borderColor: '#f0a500', color: '#f0a500' }}>Posponer</button>
-                {/* Marcar hecho — completa la subtarea */}
                 <button onClick={() => registrarAvance(avance, 'hecho')} style={btnPri}>Marcar hecho</button>
               </div>
             </div>
@@ -220,7 +194,6 @@ export default function Actividad() {
   )
 }
 
-// Pantalla de carga o error centrada
 function Pantalla({ children, error }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0f0f11', fontFamily: 'DM Sans, sans-serif' }}>
@@ -229,28 +202,6 @@ function Pantalla({ children, error }) {
   )
 }
 
-function Sidebar({ navigate, actual }) {
-  return (
-    <aside style={{ background: '#1a1a1f', borderRight: '1px solid #2a2a32', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <div style={{ padding: '0 8px 20px', borderBottom: '1px solid #2a2a32', marginBottom: 8 }}>
-        <div style={{ fontSize: '1rem', fontWeight: 700, color: '#7c6dfa' }}>📚 Planificador</div>
-        <div style={{ fontSize: '0.78rem', color: '#6b6a7a', marginTop: 2 }}>Demo · demo@univalle.edu.co</div>
-      </div>
-      <button onClick={() => navigate('/hoy')} style={nav(actual === 'hoy')}>📅 Hoy</button>
-      <button onClick={() => navigate('/actividades')} style={nav(actual === 'actividades')}>📋 Actividades</button>
-      <button onClick={() => navigate('/crear')} style={nav(actual === 'crear')}>➕ Crear actividad</button>
-      <button onClick={() => navigate('/progreso')} style={nav(actual === 'progreso')}>📊 Progreso</button>
-      <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid #2a2a32' }}>
-        <button onClick={() => { localStorage.removeItem('demo_logged'); navigate('/login') }}
-          style={{ width: '100%', padding: '8px 12px', background: 'none', border: '1px solid #2a2a32', borderRadius: 10, color: '#6b6a7a', fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-          ↩ Cerrar sesión
-        </button>
-      </div>
-    </aside>
-  )
-}
-
-const nav = (activo) => ({ padding: '9px 12px', borderRadius: 10, fontSize: '0.88rem', color: activo ? '#7c6dfa' : '#6b6a7a', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 9, background: activo ? 'rgba(124,109,250,0.12)' : 'none', border: 'none', width: '100%', textAlign: 'left', fontFamily: 'DM Sans, sans-serif', fontWeight: activo ? 600 : 400 })
 const labelSeccion = { fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#6b6a7a', marginBottom: 10 }
 const lbl = { display: 'block', fontSize: '0.82rem', color: '#6b6a7a', marginBottom: 6 }
 const inp = { width: '100%', background: '#0f0f11', border: '1px solid #2a2a32', borderRadius: 10, padding: '10px 14px', color: '#f0eff5', fontFamily: 'DM Sans, sans-serif', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }

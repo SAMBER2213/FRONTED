@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Sidebar, getHeaders } from './Sidebar'
 
 const BASE_URL = 'https://backend-planificador-3sre.onrender.com'
 
@@ -31,7 +32,7 @@ export default function Crear() {
     try {
       const res = await fetch(`${BASE_URL}/api/actividades/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({
           titulo: form.titulo,
           tipo: form.tipo,
@@ -50,7 +51,7 @@ export default function Crear() {
       for (const sub of subtareas) {
         await fetch(`${BASE_URL}/api/actividades/${data.id}/subtareas/`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getHeaders(),
           body: JSON.stringify({ nombre: sub.nombre, fecha: sub.fecha, horas: Number(sub.horas) })
         })
       }
@@ -74,23 +75,7 @@ export default function Crear() {
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', background: '#0f0f11', color: '#f0eff5' }}>
-      <aside style={{ background: '#1a1a1f', borderRight: '1px solid #2a2a32', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <div style={{ padding: '0 8px 20px', borderBottom: '1px solid #2a2a32', marginBottom: 8 }}>
-          <div style={{ fontSize: '1rem', fontWeight: 700, color: '#7c6dfa' }}>📚 Planificador</div>
-          <div style={{ fontSize: '0.78rem', color: '#6b6a7a', marginTop: 2 }}>Demo · demo@univalle.edu.co</div>
-        </div>
-        <button onClick={() => navigate('/hoy')} style={nav(false)}>📅 Hoy</button>
-        <button onClick={() => navigate('/actividades')} style={nav(false)}>📋 Actividades</button>
-        <button onClick={() => navigate('/crear')} style={nav(true)}>➕ Crear actividad</button>
-        <button onClick={() => navigate('/progreso')} style={nav(false)}>📊 Progreso</button>
-        <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid #2a2a32' }}>
-          <button onClick={() => { localStorage.removeItem('demo_logged'); navigate('/login') }}
-            style={{ width: '100%', padding: '8px 12px', background: 'none', border: '1px solid #2a2a32', borderRadius: 10, color: '#6b6a7a', fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-            ↩ Cerrar sesión
-          </button>
-        </div>
-      </aside>
-
+      <Sidebar navigate={navigate} actual="crear" />
       <main style={{ padding: '36px 40px', maxWidth: 680 }}>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 4 }}>Crear actividad</h2>
         <p style={{ fontSize: '0.85rem', color: '#6b6a7a', marginBottom: 28 }}>Ingresa los datos de tu actividad evaluativa</p>
@@ -199,6 +184,5 @@ function Campo({ label, error, children }) {
   )
 }
 
-const nav = (activo) => ({ padding: '9px 12px', borderRadius: 10, fontSize: '0.88rem', color: activo ? '#7c6dfa' : '#6b6a7a', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 9, background: activo ? 'rgba(124,109,250,0.12)' : 'none', border: 'none', width: '100%', textAlign: 'left', fontFamily: 'DM Sans, sans-serif', fontWeight: activo ? 600 : 400 })
 const labelSeccion = { fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#6b6a7a', marginBottom: 16 }
 const inputStyle = (error) => ({ width: '100%', background: '#0f0f11', border: `1px solid ${error ? '#f04a4a' : '#2a2a32'}`, borderRadius: 10, padding: '10px 14px', color: '#f0eff5', fontFamily: 'DM Sans, sans-serif', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' })

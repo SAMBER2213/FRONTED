@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Sidebar, getHeaders } from './Sidebar'
 
 const BASE_URL = 'https://backend-planificador-3sre.onrender.com'
 
@@ -15,11 +16,10 @@ export default function Progreso() {
     setCargando(true)
     setError(null)
     try {
-      const res = await fetch(`${BASE_URL}/api/actividades/`)
-      if (!res.ok) throw new Error('Error del servidor')
-      const data = await res.json()
-      setActividades(data)
-    } catch (err) {
+      const res = await fetch(`${BASE_URL}/api/actividades/`, { headers: getHeaders() })
+      if (!res.ok) throw new Error()
+      setActividades(await res.json())
+    } catch {
       setError('No se pudo cargar el progreso. Verifica tu conexión e intenta de nuevo.')
     }
     setCargando(false)
@@ -31,39 +31,17 @@ export default function Progreso() {
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', background: '#0f0f11', color: '#f0eff5' }}>
-      <aside style={{ background: '#1a1a1f', borderRight: '1px solid #2a2a32', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <div style={{ padding: '0 8px 20px', borderBottom: '1px solid #2a2a32', marginBottom: 8 }}>
-          <div style={{ fontSize: '1rem', fontWeight: 700, color: '#7c6dfa' }}>📚 Planificador</div>
-          <div style={{ fontSize: '0.78rem', color: '#6b6a7a', marginTop: 2 }}>Demo · demo@univalle.edu.co</div>
-        </div>
-        <button onClick={() => navigate('/hoy')} style={nav(false)}>📅 Hoy</button>
-        <button onClick={() => navigate('/actividades')} style={nav(false)}>📋 Actividades</button>
-        <button onClick={() => navigate('/crear')} style={nav(false)}>➕ Crear actividad</button>
-        <button onClick={() => navigate('/progreso')} style={nav(true)}>📊 Progreso</button>
-        <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid #2a2a32' }}>
-          <button onClick={() => { localStorage.removeItem('demo_logged'); navigate('/login') }}
-            style={{ width: '100%', padding: '8px 12px', background: 'none', border: '1px solid #2a2a32', borderRadius: 10, color: '#6b6a7a', fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-            ↩ Cerrar sesión
-          </button>
-        </div>
-      </aside>
-
+      <Sidebar navigate={navigate} actual="progreso" />
       <main style={{ padding: '36px 40px', maxWidth: 720 }}>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 4 }}>Progreso</h2>
         <p style={{ fontSize: '0.85rem', color: '#6b6a7a', marginBottom: 28 }}>Avance global de todas tus actividades evaluativas</p>
 
-        {cargando && (
-          <div style={{ textAlign: 'center', padding: '48px', color: '#6b6a7a' }}>
-            Cargando progreso...
-          </div>
-        )}
+        {cargando && <div style={{ textAlign: 'center', padding: '48px', color: '#6b6a7a' }}>Cargando progreso...</div>}
 
         {error && (
           <div style={{ background: 'rgba(240,74,74,0.1)', border: '1px solid #f04a4a', borderRadius: 12, padding: '20px', textAlign: 'center', marginBottom: 20 }}>
             <p style={{ color: '#f04a4a', marginBottom: 12 }}>⚠️ {error}</p>
-            <button onClick={cargar} style={{ padding: '8px 20px', background: 'none', border: '1px solid #f04a4a', borderRadius: 8, color: '#f04a4a', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-              Reintentar
-            </button>
+            <button onClick={cargar} style={{ padding: '8px 20px', background: 'none', border: '1px solid #f04a4a', borderRadius: 8, color: '#f04a4a', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Reintentar</button>
           </div>
         )}
 
@@ -71,9 +49,7 @@ export default function Progreso() {
           <div style={{ textAlign: 'center', padding: '48px', color: '#6b6a7a' }}>
             <p style={{ fontSize: '1.1rem', marginBottom: 8 }}>No tienes actividades aún</p>
             <p style={{ fontSize: '0.85rem', marginBottom: 20 }}>Crea una actividad para ver tu progreso aquí</p>
-            <button onClick={() => navigate('/crear')} style={{ padding: '10px 24px', background: '#7c6dfa', border: 'none', borderRadius: 10, color: 'white', fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-              Crear actividad
-            </button>
+            <button onClick={() => navigate('/crear')} style={{ padding: '10px 24px', background: '#7c6dfa', border: 'none', borderRadius: 10, color: 'white', fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Crear actividad</button>
           </div>
         )}
 
@@ -114,10 +90,7 @@ export default function Progreso() {
                         {vencida && <span style={{ fontSize: '0.68rem', fontWeight: 700, background: 'rgba(240,74,74,0.15)', color: '#f04a4a', padding: '2px 8px', borderRadius: 20 }}>VENCIDA</span>}
                         {pct === 100 && <span style={{ fontSize: '0.68rem', fontWeight: 700, background: 'rgba(59,191,163,0.15)', color: '#3bbfa3', padding: '2px 8px', borderRadius: 20 }}>✓ COMPLETADA</span>}
                       </div>
-                      <p style={{ fontSize: '0.78rem', color: '#6b6a7a' }}>
-                        {act.tipo} · {act.curso}
-                        {act.fechaLimite ? ` · Vence ${act.fechaLimite}` : ''}
-                      </p>
+                      <p style={{ fontSize: '0.78rem', color: '#6b6a7a' }}>{act.tipo} · {act.curso}{act.fechaLimite ? ` · Vence ${act.fechaLimite}` : ''}</p>
                     </div>
                     <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '1rem', fontWeight: 700, color }}>{pct}%</span>
                   </div>
@@ -125,9 +98,7 @@ export default function Progreso() {
                     <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 10, transition: 'width 0.4s' }}></div>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
-                    <p style={{ fontSize: '0.75rem', color: '#6b6a7a' }}>
-                      {total === 0 ? 'Sin subtareas' : `${hechas}/${total} subtareas completadas`}
-                    </p>
+                    <p style={{ fontSize: '0.75rem', color: '#6b6a7a' }}>{total === 0 ? 'Sin subtareas' : `${hechas}/${total} subtareas completadas`}</p>
                     <p style={{ fontSize: '0.75rem', color: '#6b6a7a' }}>click para ver detalle →</p>
                   </div>
                 </div>
@@ -140,5 +111,4 @@ export default function Progreso() {
   )
 }
 
-const nav = (activo) => ({ padding: '9px 12px', borderRadius: 10, fontSize: '0.88rem', color: activo ? '#7c6dfa' : '#6b6a7a', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 9, background: activo ? 'rgba(124,109,250,0.12)' : 'none', border: 'none', width: '100%', textAlign: 'left', fontFamily: 'DM Sans, sans-serif', fontWeight: activo ? 600 : 400 })
 const labelSeccion = { fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#6b6a7a', marginBottom: 10 }
