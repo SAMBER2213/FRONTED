@@ -1,15 +1,15 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { API } from '../api'
 
 export default function Crear() {
   const navigate = useNavigate()
-  const [form, setForm] = useState({
-    titulo: '', tipo: '', curso: '', fechaLimite: '', horas: ''
-  })
+  const [form, setForm] = useState({ titulo: '', tipo: '', curso: '', fechaLimite: '', horasEstimadas: '' })
   const [subtareas, setSubtareas] = useState([])
   const [nuevaSub, setNuevaSub] = useState({ nombre: '', fecha: '', horas: '' })
   const [errores, setErrores] = useState({})
   const [exito, setExito] = useState(false)
+  const [cargando, setCargando] = useState(false)
 
   const tipos = ['Examen', 'Quiz', 'Taller', 'Proyecto', 'Otro']
 
@@ -21,11 +21,36 @@ export default function Crear() {
     return e
   }
 
-  function guardar() {
+  async function guardar() {
     const e = validar()
     if (Object.keys(e).length > 0) { setErrores(e); return }
-    setExito(true)
-    setTimeout(() => navigate('/hoy'), 1500)
+    setCargando(true)
+    try {
+      const res = await API.createActividad({
+        titulo: form.titulo,
+        tipo: form.tipo,
+        curso: form.curso,
+        fechaLimite: form.fechaLimite,
+        horasEstimadas: Number(form.horasEstimadas) || 0,
+      })
+      if (!res.ok) {
+        setErrores(res.data.campos || { general: 'Error al guardar la actividad' })
+        setCargando(false)
+        return
+      }
+      for (const sub of subtareas) {
+        await API.createSubtarea(res.data.id, {
+          nombre: sub.nombre,
+          fecha: sub.fecha,
+          horas: Number(sub.horas),
+        })
+      }
+      setExito(true)
+      setTimeout(() => navigate('/hoy'), 1500)
+    } catch {
+      setErrores({ general: 'Error de conexión. Verifica que el servidor esté activo.' })
+    }
+    setCargando(false)
   }
 
   function agregarSubtarea() {
@@ -41,7 +66,6 @@ export default function Crear() {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', background: '#0f0f11', color: '#f0eff5' }}>
       <Sidebar navigate={navigate} actual="actividades" />
-
       <main style={{ padding: '36px 40px', maxWidth: 680 }}>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 4 }}>Crear actividad</h2>
         <p style={{ fontSize: '0.85rem', color: '#6b6a7a', marginBottom: 28 }}>Ingresa los datos de tu actividad evaluativa</p>
@@ -51,16 +75,18 @@ export default function Crear() {
             ✅ Actividad creada exitosamente. Redirigiendo...
           </div>
         )}
+        {errores.general && (
+          <div style={{ background: 'rgba(240,74,74,0.1)', border: '1px solid #f04a4a', borderRadius: 10, padding: '12px 16px', marginBottom: 20, color: '#f04a4a', fontSize: '0.88rem' }}>
+            ⚠️ {errores.general}
+          </div>
+        )}
 
-        {/* Campos principales */}
         <div style={{ background: '#1a1a1f', border: '1px solid #2a2a32', borderRadius: 14, padding: '24px', marginBottom: 20 }}>
           <p style={labelSeccion}>Información de la actividad</p>
-
           <Campo label="Título *" error={errores.titulo}>
             <input style={inputStyle(errores.titulo)} placeholder="Ej: Parcial de Cálculo"
               value={form.titulo} onChange={e => setForm({ ...form, titulo: e.target.value })} />
           </Campo>
-
           <Campo label="Tipo *" error={errores.tipo}>
             <select style={inputStyle(errores.tipo)} value={form.tipo}
               onChange={e => setForm({ ...form, tipo: e.target.value })}>
@@ -68,12 +94,10 @@ export default function Crear() {
               {tipos.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </Campo>
-
           <Campo label="Curso *" error={errores.curso}>
             <input style={inputStyle(errores.curso)} placeholder="Ej: Cálculo Diferencial"
               value={form.curso} onChange={e => setForm({ ...form, curso: e.target.value })} />
           </Campo>
-
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <Campo label="Fecha límite">
               <input type="date" style={inputStyle()} value={form.fechaLimite}
@@ -81,21 +105,18 @@ export default function Crear() {
             </Campo>
             <Campo label="Horas estimadas">
               <input type="number" style={inputStyle()} placeholder="Ej: 4" min="0"
-                value={form.horas} onChange={e => setForm({ ...form, horas: e.target.value })} />
+                value={form.horasEstimadas} onChange={e => setForm({ ...form, horasEstimadas: e.target.value })} />
             </Campo>
           </div>
         </div>
 
-        {/* Subtareas */}
         <div style={{ background: '#1a1a1f', border: '1px solid #2a2a32', borderRadius: 14, padding: '24px', marginBottom: 24 }}>
           <p style={labelSeccion}>Subtareas del plan inicial</p>
-
           {subtareas.length === 0 && (
             <div style={{ textAlign: 'center', padding: '24px', color: '#6b6a7a', fontSize: '0.85rem' }}>
               No hay subtareas aún. Agrega al menos una.
             </div>
           )}
-
           {subtareas.map((s, i) => (
             <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#0f0f11', border: '1px solid #2a2a32', borderRadius: 10, padding: '10px 14px', marginBottom: 8 }}>
               <div style={{ flex: 1 }}>
@@ -108,8 +129,6 @@ export default function Crear() {
               </button>
             </div>
           ))}
-
-          {/* Agregar subtarea */}
           <div style={{ borderTop: '1px solid #2a2a32', marginTop: 16, paddingTop: 16 }}>
             <p style={{ fontSize: '0.78rem', color: '#6b6a7a', marginBottom: 10 }}>Nueva subtarea</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 10, alignItems: 'start' }}>
@@ -132,13 +151,12 @@ export default function Crear() {
           </div>
         </div>
 
-        {/* Botones */}
         <div style={{ display: 'flex', gap: 12 }}>
           <button onClick={() => navigate('/hoy')} style={{ padding: '11px 24px', background: 'none', border: '1px solid #2a2a32', borderRadius: 10, color: '#6b6a7a', fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
             Cancelar
           </button>
-          <button onClick={guardar} style={{ padding: '11px 24px', background: '#7c6dfa', border: 'none', borderRadius: 10, color: 'white', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-            Guardar actividad
+          <button onClick={guardar} disabled={cargando} style={{ padding: '11px 24px', background: cargando ? '#4a4060' : '#7c6dfa', border: 'none', borderRadius: 10, color: 'white', fontSize: '0.9rem', fontWeight: 600, cursor: cargando ? 'not-allowed' : 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+            {cargando ? 'Guardando...' : 'Guardar actividad'}
           </button>
         </div>
       </main>
@@ -164,30 +182,12 @@ function Sidebar({ navigate, actual }) {
         <div style={{ fontSize: '0.78rem', color: '#6b6a7a', marginTop: 2 }}>Demo · demo@univalle.edu.co</div>
       </div>
       <button onClick={() => navigate('/hoy')} style={nav(actual === 'hoy')}>📅 Hoy</button>
-      <button onClick={() => navigate('/actividad/1')} style={nav(actual === 'actividades')}>📋 Actividades</button>
+      <button onClick={() => navigate('/crear')} style={nav(actual === 'actividades')}>📋 Actividades</button>
       <button onClick={() => navigate('/progreso')} style={nav(actual === 'progreso')}>📊 Progreso</button>
     </aside>
   )
 }
 
-const nav = (activo) => ({
-  padding: '9px 12px', borderRadius: 10, fontSize: '0.88rem',
-  color: activo ? '#7c6dfa' : '#6b6a7a', cursor: 'pointer',
-  display: 'flex', alignItems: 'center', gap: 9,
-  background: activo ? 'rgba(124,109,250,0.12)' : 'none',
-  border: 'none', width: '100%', textAlign: 'left',
-  fontFamily: 'DM Sans, sans-serif', fontWeight: activo ? 600 : 400
-})
-
-const labelSeccion = {
-  fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase',
-  letterSpacing: '0.1em', color: '#6b6a7a', marginBottom: 16
-}
-
-const inputStyle = (error) => ({
-  width: '100%', background: '#0f0f11',
-  border: `1px solid ${error ? '#f04a4a' : '#2a2a32'}`,
-  borderRadius: 10, padding: '10px 14px', color: '#f0eff5',
-  fontFamily: 'DM Sans, sans-serif', fontSize: '0.9rem',
-  outline: 'none', boxSizing: 'border-box'
-})
+const nav = (activo) => ({ padding: '9px 12px', borderRadius: 10, fontSize: '0.88rem', color: activo ? '#7c6dfa' : '#6b6a7a', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 9, background: activo ? 'rgba(124,109,250,0.12)' : 'none', border: 'none', width: '100%', textAlign: 'left', fontFamily: 'DM Sans, sans-serif', fontWeight: activo ? 600 : 400 })
+const labelSeccion = { fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#6b6a7a', marginBottom: 16 }
+const inputStyle = (error) => ({ width: '100%', background: '#0f0f11', border: `1px solid ${error ? '#f04a4a' : '#2a2a32'}`, borderRadius: 10, padding: '10px 14px', color: '#f0eff5', fontFamily: 'DM Sans, sans-serif', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' })
