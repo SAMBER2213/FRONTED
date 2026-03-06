@@ -37,7 +37,8 @@ export default function Progreso() {
           <div style={{ fontSize: '0.78rem', color: '#6b6a7a', marginTop: 2 }}>Demo · demo@univalle.edu.co</div>
         </div>
         <button onClick={() => navigate('/hoy')} style={nav(false)}>📅 Hoy</button>
-        <button onClick={() => navigate('/crear')} style={nav(false)}>📋 Crear actividad</button>
+        <button onClick={() => navigate('/actividades')} style={nav(false)}>📋 Actividades</button>
+        <button onClick={() => navigate('/crear')} style={nav(false)}>➕ Crear actividad</button>
         <button onClick={() => navigate('/progreso')} style={nav(true)}>📊 Progreso</button>
         <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid #2a2a32' }}>
           <button onClick={() => { localStorage.removeItem('demo_logged'); navigate('/login') }}
@@ -51,14 +52,12 @@ export default function Progreso() {
         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 4 }}>Progreso</h2>
         <p style={{ fontSize: '0.85rem', color: '#6b6a7a', marginBottom: 28 }}>Avance global de todas tus actividades evaluativas</p>
 
-        {/* Cargando */}
         {cargando && (
           <div style={{ textAlign: 'center', padding: '48px', color: '#6b6a7a' }}>
             Cargando progreso...
           </div>
         )}
 
-        {/* Error */}
         {error && (
           <div style={{ background: 'rgba(240,74,74,0.1)', border: '1px solid #f04a4a', borderRadius: 12, padding: '20px', textAlign: 'center', marginBottom: 20 }}>
             <p style={{ color: '#f04a4a', marginBottom: 12 }}>⚠️ {error}</p>
@@ -68,7 +67,6 @@ export default function Progreso() {
           </div>
         )}
 
-        {/* Vacío */}
         {!cargando && !error && actividades.length === 0 && (
           <div style={{ textAlign: 'center', padding: '48px', color: '#6b6a7a' }}>
             <p style={{ fontSize: '1.1rem', marginBottom: 8 }}>No tienes actividades aún</p>
@@ -79,10 +77,8 @@ export default function Progreso() {
           </div>
         )}
 
-        {/* Contenido */}
         {!cargando && !error && actividades.length > 0 && (
           <>
-            {/* Resumen global */}
             <div style={{ background: '#1a1a1f', border: '1px solid #2a2a32', borderRadius: 14, padding: '20px 24px', marginBottom: 28, display: 'flex', alignItems: 'center', gap: 20 }}>
               <div>
                 <p style={{ fontSize: '0.78rem', color: '#6b6a7a', marginBottom: 4 }}>Progreso global</p>
@@ -96,7 +92,6 @@ export default function Progreso() {
               </div>
             </div>
 
-            {/* Por actividad */}
             <p style={labelSeccion}>Por actividad</p>
             {actividades.map(act => {
               const subs = act.subtareas || []
@@ -112,7 +107,6 @@ export default function Progreso() {
                   style={{ background: '#1a1a1f', border: `1px solid ${vencida ? '#f04a4a' : '#2a2a32'}`, borderRadius: 12, padding: '16px 20px', marginBottom: 10, cursor: 'pointer' }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = vencida ? '#f04a4a' : '#3a3a45'}
                   onMouseLeave={e => e.currentTarget.style.borderColor = vencida ? '#f04a4a' : '#2a2a32'}>
-
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 10 }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
@@ -127,11 +121,9 @@ export default function Progreso() {
                     </div>
                     <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '1rem', fontWeight: 700, color }}>{pct}%</span>
                   </div>
-
                   <div style={{ height: 5, background: '#2a2a32', borderRadius: 10, overflow: 'hidden' }}>
                     <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 10, transition: 'width 0.4s' }}></div>
                   </div>
-
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
                     <p style={{ fontSize: '0.75rem', color: '#6b6a7a' }}>
                       {total === 0 ? 'Sin subtareas' : `${hechas}/${total} subtareas completadas`}

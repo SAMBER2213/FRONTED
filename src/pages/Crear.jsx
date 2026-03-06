@@ -47,7 +47,6 @@ export default function Crear() {
         setCargando(false)
         return
       }
-      // Guardar subtareas una por una
       for (const sub of subtareas) {
         await fetch(`${BASE_URL}/api/actividades/${data.id}/subtareas/`, {
           method: 'POST',
@@ -81,8 +80,15 @@ export default function Crear() {
           <div style={{ fontSize: '0.78rem', color: '#6b6a7a', marginTop: 2 }}>Demo · demo@univalle.edu.co</div>
         </div>
         <button onClick={() => navigate('/hoy')} style={nav(false)}>📅 Hoy</button>
-        <button onClick={() => navigate('/crear')} style={nav(true)}>📋 Crear actividad</button>
+        <button onClick={() => navigate('/actividades')} style={nav(false)}>📋 Actividades</button>
+        <button onClick={() => navigate('/crear')} style={nav(true)}>➕ Crear actividad</button>
         <button onClick={() => navigate('/progreso')} style={nav(false)}>📊 Progreso</button>
+        <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid #2a2a32' }}>
+          <button onClick={() => { localStorage.removeItem('demo_logged'); navigate('/login') }}
+            style={{ width: '100%', padding: '8px 12px', background: 'none', border: '1px solid #2a2a32', borderRadius: 10, color: '#6b6a7a', fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+            ↩ Cerrar sesión
+          </button>
+        </div>
       </aside>
 
       <main style={{ padding: '36px 40px', maxWidth: 680 }}>
