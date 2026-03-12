@@ -72,6 +72,10 @@ export default function Actividad() {
   const [conflicto, setConflicto] = useState(null)
   const [avance, setAvance] = useState(null)
   const [nota, setNota] = useState('')
+  const [mostrarFormSub, setMostrarFormSub] = useState(false)
+  const [nuevaSub, setNuevaSub] = useState({ nombre: '', fecha: '', hora: '', horas: '' })
+  const [erroresSub, setErroresSub] = useState({})
+  const [guardandoSub, setGuardandoSub] = useState(false)
   const LIMITE_HORAS = 6
 
   useEffect(() => { cargar() }, [id])
@@ -117,6 +121,25 @@ export default function Actividad() {
     } catch { alert('Error al reprogramar.') }
     setReprogramando(null)
     setConflicto(null)
+  }
+
+  async function agregarSubtarea() {
+    const e = {}
+    if (!nuevaSub.nombre.trim()) e.nombre = 'El nombre es obligatorio'
+    if (!nuevaSub.horas || Number(nuevaSub.horas) <= 0) e.horas = 'Las horas deben ser mayor a 0'
+    if (Object.keys(e).length > 0) { setErroresSub(e); return }
+    setGuardandoSub(true)
+    try {
+      await fetch(`${BASE_URL}/api/actividades/${id}/subtareas/`, {
+        method: 'POST', headers: getHeaders(),
+        body: JSON.stringify({ nombre: nuevaSub.nombre.trim(), fecha: nuevaSub.fecha, hora: nuevaSub.hora || '', horas: Number(nuevaSub.horas) })
+      })
+      setNuevaSub({ nombre: '', fecha: '', hora: '', horas: '' })
+      setErroresSub({})
+      setMostrarFormSub(false)
+      await cargar()
+    } catch { alert('Error al agregar subtarea.') }
+    setGuardandoSub(false)
   }
 
   async function registrarAvance(sub, estado) {
@@ -203,6 +226,54 @@ export default function Actividad() {
             )}
           </div>
         ))}
+
+        {/* Botón agregar subtarea */}
+        <div style={{ marginTop: 16, marginBottom: 8 }}>
+          {!mostrarFormSub ? (
+            <button onClick={() => setMostrarFormSub(true)}
+              style={{ padding: '8px 18px', background: 'rgba(124,109,250,0.15)', border: '1px solid #7c6dfa', borderRadius: 10, color: '#7c6dfa', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+              + Agregar subtarea
+            </button>
+          ) : (
+            <div style={{ background: '#1a1a1f', border: '1px solid #2a2a32', borderRadius: 14, padding: '20px' }}>
+              <p style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#6b6a7a', marginBottom: 14 }}>Nueva subtarea</p>
+              <div style={{ marginBottom: 12 }}>
+                <input placeholder="Nombre de la subtarea" value={nuevaSub.nombre}
+                  onChange={e => setNuevaSub({ ...nuevaSub, nombre: e.target.value })}
+                  style={{ ...inp, border: `1px solid ${erroresSub.nombre ? '#f04a4a' : '#2a2a32'}` }} />
+                {erroresSub.nombre && <p style={{ fontSize: '0.75rem', color: '#f04a4a', marginTop: 4 }}>{erroresSub.nombre}</p>}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <div>
+                  <label style={lbl}>Fecha</label>
+                  <input type="date" value={nuevaSub.fecha}
+                    onChange={e => setNuevaSub({ ...nuevaSub, fecha: e.target.value, hora: nuevaSub.hora || '08:00' })}
+                    style={inp} />
+                </div>
+                <div>
+                  <label style={lbl}>Horas de estudio</label>
+                  <input type="number" placeholder="Ej: 2" min="0" value={nuevaSub.horas}
+                    onChange={e => setNuevaSub({ ...nuevaSub, horas: e.target.value })}
+                    style={{ ...inp, border: `1px solid ${erroresSub.horas ? '#f04a4a' : '#2a2a32'}` }} />
+                  {erroresSub.horas && <p style={{ fontSize: '0.75rem', color: '#f04a4a', marginTop: 4 }}>{erroresSub.horas}</p>}
+                </div>
+              </div>
+              {nuevaSub.fecha && (
+                <div style={{ marginBottom: 16 }}>
+                  <label style={lbl}>Hora (opcional)</label>
+                  <HoraPicker value={nuevaSub.hora} onChange={h => setNuevaSub({ ...nuevaSub, hora: h })} />
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button onClick={() => { setMostrarFormSub(false); setNuevaSub({ nombre: '', fecha: '', hora: '', horas: '' }); setErroresSub({}) }} style={btnSec}>Cancelar</button>
+                <button onClick={agregarSubtarea} disabled={guardandoSub}
+                  style={{ ...btnPri, opacity: guardandoSub ? 0.6 : 1 }}>
+                  {guardandoSub ? 'Guardando...' : 'Guardar subtarea'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Modal Reprogramar */}
         {reprogramando && !conflicto && (
