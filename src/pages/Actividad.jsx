@@ -211,7 +211,7 @@ export default function Actividad() {
               <h3 style={{ marginBottom: 4, fontSize: '1.1rem' }}>Reprogramar subtarea</h3>
               <p style={{ fontSize: '0.82rem', color: '#6b6a7a', marginBottom: 20 }}>{reprogramando.nombre}</p>
               <label style={lbl}>Nueva fecha</label>
-              <input type="date" value={nuevaFecha} onChange={e => setNuevaFecha(e.target.value)} style={{ ...inp, marginBottom: 14 }} />
+              <input type="date" value={nuevaFecha} onChange={e => { setNuevaFecha(e.target.value); if (!nuevaHora) setNuevaHora('08:00') }} style={{ ...inp, marginBottom: 14 }} />
               {nuevaFecha && (
                 <>
                   <label style={lbl}>Hora (opcional)</label>

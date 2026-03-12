@@ -165,7 +165,7 @@ export default function Crear() {
             </Campo>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
               <Campo label="Fecha">
-                <input type="date" style={inputStyle()} value={nuevaSub.fecha} onChange={e => setNuevaSub({ ...nuevaSub, fecha: e.target.value })} />
+                <input type="date" style={inputStyle()} value={nuevaSub.fecha} onChange={e => setNuevaSub({ ...nuevaSub, fecha: e.target.value, hora: nuevaSub.hora || '08:00' })} />
               </Campo>
               <Campo label="Horas de estudio" error={errores.horas}>
                 <input type="number" style={inputStyle(errores.horas)} placeholder="Ej: 2" min="0"
