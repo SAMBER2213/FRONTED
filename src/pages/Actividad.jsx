@@ -111,7 +111,7 @@ export default function Actividad() {
     try {
       await fetch(`${BASE_URL}/api/actividades/${id}/subtareas/${reprogramando.id}/`, {
         method: 'PUT', headers: getHeaders(),
-        body: JSON.stringify({ fecha: nuevaFecha, hora: nuevaHora, horas: Number(nuevasHoras) })
+        body: JSON.stringify({ fecha: nuevaFecha, hora: nuevaHora, horas: Number(nuevasHoras), estado: 'pendiente' })
       })
       await cargar()
     } catch { alert('Error al reprogramar.') }
