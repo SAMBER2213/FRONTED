@@ -60,7 +60,7 @@ export default function Hoy() {
         {/* Regla */}
         {regla && (
           <div style={{ background: '#1a1a1f', border: '1px solid #2a2a32', borderRadius: 10, padding: '10px 16px', marginBottom: 28, fontSize: '0.78rem', color: '#6b6a7a' }}>
-            📌 <strong style={{ color: '#f0eff5' }}>Regla de prioridad:</strong> {regla}
+            📌 <strong style={{ color: '#f0eff5' }}>Regla de prioridad:</strong> {regla || 'Tus tareas se ordenan así: primero las Vencidas (la más antigua arriba), luego las de Hoy, y después las Próximas (la más cercana arriba). Si dos tareas tienen la misma fecha, aparece primero la de menor esfuerzo.'}
           </div>
         )}
 
