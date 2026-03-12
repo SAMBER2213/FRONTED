@@ -4,6 +4,61 @@ import { Sidebar, getHeaders } from './Sidebar'
 
 const BASE_URL = 'https://backend-planificador-3sre.onrender.com'
 
+function HoraPicker({ value, onChange }) {
+  const parse = (v) => {
+    if (!v) return { h: '08', m: '00', ampm: 'AM' }
+    const [h, m] = v.split(':')
+    const n = parseInt(h)
+    return { h: String(n > 12 ? n - 12 : n === 0 ? 12 : n).padStart(2, '0'), m, ampm: n >= 12 ? 'PM' : 'AM' }
+  }
+  const [hora, setHora] = useState(() => parse(value))
+
+  function emitir(next) {
+    let h24 = parseInt(next.h)
+    if (next.ampm === 'AM') { if (h24 === 12) h24 = 0 }
+    else { if (h24 !== 12) h24 += 12 }
+    onChange(`${String(h24).padStart(2, '0')}:${next.m}`)
+  }
+
+  function update(field, val) {
+    const next = { ...hora, [field]: val }
+    setHora(next)
+    emitir(next)
+  }
+
+  const horas = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))
+  const minutos = ['00', '15', '30', '45']
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <select value={hora.h} onChange={e => update('h', e.target.value)} style={selStyle}>
+        {horas.map(h => <option key={h}>{h}</option>)}
+      </select>
+      <span style={{ color: '#6b6a7a', fontWeight: 700 }}>:</span>
+      <select value={hora.m} onChange={e => update('m', e.target.value)} style={selStyle}>
+        {minutos.map(m => <option key={m}>{m}</option>)}
+      </select>
+      <div style={{ display: 'flex', background: '#0f0f11', border: '1px solid #2a2a32', borderRadius: 8, overflow: 'hidden' }}>
+        {['AM', 'PM'].map(p => (
+          <button key={p} onClick={() => update('ampm', p)} type="button"
+            style={{ padding: '8px 12px', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '0.82rem', fontWeight: 700, background: hora.ampm === p ? '#7c6dfa' : 'transparent', color: hora.ampm === p ? 'white' : '#6b6a7a', transition: 'all 0.15s' }}>
+            {p}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function formatHora12(hora24) {
+  if (!hora24) return ''
+  const [h, m] = hora24.split(':')
+  const n = parseInt(h)
+  const ampm = n >= 12 ? 'PM' : 'AM'
+  const h12 = n > 12 ? n - 12 : n === 0 ? 12 : n
+  return `${String(h12).padStart(2, '0')}:${m} ${ampm}`
+}
+
 export default function Actividad() {
   const navigate = useNavigate()
   const { id } = useParams()
@@ -12,6 +67,7 @@ export default function Actividad() {
   const [error, setError] = useState(null)
   const [reprogramando, setReprogramando] = useState(null)
   const [nuevaFecha, setNuevaFecha] = useState('')
+  const [nuevaHora, setNuevaHora] = useState('')
   const [nuevasHoras, setNuevasHoras] = useState('')
   const [conflicto, setConflicto] = useState(null)
   const [avance, setAvance] = useState(null)
@@ -29,15 +85,14 @@ export default function Actividad() {
       const data = await res.json()
       if (data.error) { setError('Actividad no encontrada'); return }
       setActividad(data)
-    } catch {
-      setError('Error al cargar la actividad.')
-    }
+    } catch { setError('Error al cargar la actividad.') }
     setCargando(false)
   }
 
   function abrirReprogramar(sub) {
     setReprogramando(sub)
     setNuevaFecha(sub.fecha || '')
+    setNuevaHora(sub.hora || '')
     setNuevasHoras(sub.horas || '')
     setConflicto(null)
   }
@@ -48,19 +103,15 @@ export default function Actividad() {
       .filter(s => s.id !== reprogramando.id && s.fecha === nuevaFecha)
       .reduce((acc, s) => acc + Number(s.horas), 0)
     const total = horasEnFecha + Number(nuevasHoras)
-    if (total > LIMITE_HORAS) {
-      setConflicto({ total, limite: LIMITE_HORAS, fecha: nuevaFecha })
-      return
-    }
+    if (total > LIMITE_HORAS) { setConflicto({ total, limite: LIMITE_HORAS, fecha: nuevaFecha }); return }
     await aplicarReprogramacion()
   }
 
   async function aplicarReprogramacion() {
     try {
       await fetch(`${BASE_URL}/api/actividades/${id}/subtareas/${reprogramando.id}/`, {
-        method: 'PUT',
-        headers: getHeaders(),
-        body: JSON.stringify({ fecha: nuevaFecha, horas: Number(nuevasHoras) })
+        method: 'PUT', headers: getHeaders(),
+        body: JSON.stringify({ fecha: nuevaFecha, hora: nuevaHora, horas: Number(nuevasHoras) })
       })
       await cargar()
     } catch { alert('Error al reprogramar.') }
@@ -71,8 +122,7 @@ export default function Actividad() {
   async function registrarAvance(sub, estado) {
     try {
       await fetch(`${BASE_URL}/api/actividades/${id}/subtareas/${sub.id}/`, {
-        method: 'PUT',
-        headers: getHeaders(),
+        method: 'PUT', headers: getHeaders(),
         body: JSON.stringify({ estado, nota })
       })
       await cargar()
@@ -98,7 +148,6 @@ export default function Actividad() {
     <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', background: '#0f0f11', color: '#f0eff5' }}>
       <Sidebar navigate={navigate} actual="actividades" />
       <main style={{ padding: '36px 40px', maxWidth: 720 }}>
-
         <button onClick={() => navigate('/actividades')} style={{ background: 'none', border: 'none', color: '#6b6a7a', cursor: 'pointer', fontSize: '0.85rem', marginBottom: 20, fontFamily: 'DM Sans, sans-serif' }}>← Volver</button>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 24 }}>
@@ -123,9 +172,7 @@ export default function Actividad() {
         {conflicto && (
           <div style={{ background: 'rgba(240,74,74,0.1)', border: '1px solid #f04a4a', borderRadius: 12, padding: '16px 20px', marginBottom: 20 }}>
             <p style={{ color: '#f04a4a', fontWeight: 700, marginBottom: 6 }}>⚠️ Conflicto de sobrecarga detectado</p>
-            <p style={{ fontSize: '0.85rem', marginBottom: 12 }}>
-              El día <strong>{conflicto.fecha}</strong> quedaría con <strong>{conflicto.total}h</strong>, superando el límite de <strong>{conflicto.limite}h/día</strong>.
-            </p>
+            <p style={{ fontSize: '0.85rem', marginBottom: 12 }}>El día <strong>{conflicto.fecha}</strong> quedaría con <strong>{conflicto.total}h</strong>, superando el límite de <strong>{conflicto.limite}h/día</strong>.</p>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={aplicarReprogramacion} style={btnSec}>Reprogramar igual</button>
               <button onClick={() => setConflicto(null)} style={btnPri}>Elegir otra fecha</button>
@@ -144,7 +191,7 @@ export default function Actividad() {
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: '0.92rem', fontWeight: 500, textDecoration: sub.estado === 'hecho' ? 'line-through' : 'none', color: sub.estado === 'hecho' ? '#6b6a7a' : '#f0eff5' }}>{sub.nombre}</div>
               <div style={{ fontSize: '0.78rem', color: '#6b6a7a', marginTop: 3 }}>
-                {sub.fecha || 'Sin fecha'} · {sub.horas}h {sub.nota && `· 📝 ${sub.nota}`}
+                {sub.fecha || 'Sin fecha'}{sub.hora ? ` · ${formatHora12(sub.hora)}` : ''} · {sub.horas}h {sub.nota && `· 📝 ${sub.nota}`}
               </div>
             </div>
             <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', padding: '3px 9px', borderRadius: 20, background: sub.estado === 'hecho' ? 'rgba(59,191,163,0.15)' : sub.estado === 'pospuesto' ? 'rgba(240,165,0,0.15)' : 'rgba(107,106,122,0.15)', color: sub.estado === 'hecho' ? '#3bbfa3' : sub.estado === 'pospuesto' ? '#f0a500' : '#6b6a7a' }}>
@@ -157,6 +204,7 @@ export default function Actividad() {
           </div>
         ))}
 
+        {/* Modal Reprogramar */}
         {reprogramando && !conflicto && (
           <div style={overlay}>
             <div style={modal}>
@@ -164,7 +212,15 @@ export default function Actividad() {
               <p style={{ fontSize: '0.82rem', color: '#6b6a7a', marginBottom: 20 }}>{reprogramando.nombre}</p>
               <label style={lbl}>Nueva fecha</label>
               <input type="date" value={nuevaFecha} onChange={e => setNuevaFecha(e.target.value)} style={{ ...inp, marginBottom: 14 }} />
-              <label style={lbl}>Horas estimadas</label>
+              {nuevaFecha && (
+                <>
+                  <label style={lbl}>Hora (opcional)</label>
+                  <div style={{ marginBottom: 14 }}>
+                    <HoraPicker value={nuevaHora} onChange={setNuevaHora} />
+                  </div>
+                </>
+              )}
+              <label style={lbl}>Horas de estudio</label>
               <input type="number" value={nuevasHoras} onChange={e => setNuevasHoras(e.target.value)} style={{ ...inp, marginBottom: 20 }} min="0" />
               <div style={{ display: 'flex', gap: 10 }}>
                 <button onClick={() => setReprogramando(null)} style={btnSec}>Cancelar</button>
@@ -174,6 +230,7 @@ export default function Actividad() {
           </div>
         )}
 
+        {/* Modal Avance */}
         {avance && (
           <div style={overlay}>
             <div style={modal}>
@@ -209,3 +266,4 @@ const btnPri = { padding: '9px 20px', background: '#7c6dfa', border: 'none', bor
 const btnSec = { padding: '9px 20px', background: 'none', border: '1px solid #2a2a32', borderRadius: 10, color: '#6b6a7a', fontSize: '0.88rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }
 const overlay = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }
 const modal = { background: '#1a1a1f', border: '1px solid #2a2a32', borderRadius: 16, padding: '28px', width: 400 }
+const selStyle = { background: '#0f0f11', border: '1px solid #2a2a32', borderRadius: 8, padding: '8px 12px', color: '#f0eff5', fontFamily: 'DM Sans, sans-serif', fontSize: '0.88rem', outline: 'none', cursor: 'pointer' }
