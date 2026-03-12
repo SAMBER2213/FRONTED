@@ -6,11 +6,10 @@ const LIMITE_HORAS = 6
 
 export default function Hoy() {
   const navigate = useNavigate()
-  const [subtareas, setSubtareas] = useState([])
+  const [datos, setDatos] = useState({ vencidas: [], hoy: [], proximas: [], carga_hoy_horas: 0, regla: '' })
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
 
-  const hoy = new Date().toISOString().split('T')[0]
   const fecha = new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
   useEffect(() => { cargar() }, [])
@@ -20,40 +19,23 @@ export default function Hoy() {
     setError(null)
     try {
       const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
-      const res = await fetch(`${BASE_URL}/api/actividades/`, {
+      const res = await fetch(`${BASE_URL}/api/hoy/`, {
         headers: {
           'Content-Type': 'application/json',
           'X-Usuario-Id': usuario.id || ''
         }
       })
       if (!res.ok) throw new Error()
-      const actividades = await res.json()
-      const todas = actividades.flatMap(act =>
-        (act.subtareas || []).filter(s => s.estado !== 'hecho').map(sub => ({
-          ...sub,
-          actividadId: act.id,
-          actividadTitulo: act.titulo,
-          actividadCurso: act.curso
-        }))
-      )
-      setSubtareas(todas)
+      const json = await res.json()
+      setDatos(json)
     } catch {
       setError('No se pudo cargar. Verifica tu conexión.')
     }
     setCargando(false)
   }
 
-  function grupo(sub) {
-    if (!sub.fecha) return 'proximas'
-    if (sub.fecha < hoy) return 'vencidas'
-    if (sub.fecha === hoy) return 'hoy'
-    return 'proximas'
-  }
-
-  const vencidas = subtareas.filter(s => grupo(s) === 'vencidas').sort((a, b) => a.fecha > b.fecha ? 1 : -1)
-  const paraHoy = subtareas.filter(s => grupo(s) === 'hoy').sort((a, b) => a.horas - b.horas)
-  const proximas = subtareas.filter(s => grupo(s) === 'proximas').sort((a, b) => a.fecha > b.fecha ? 1 : -1)
-  const cargaHoy = paraHoy.reduce((acc, s) => acc + Number(s.horas || 0), 0)
+  const { vencidas, hoy: paraHoy, proximas, carga_hoy_horas: cargaHoy, regla } = datos
+  const totalSubtareas = vencidas.length + paraHoy.length + proximas.length
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', background: '#0f0f11', color: '#f0eff5' }}>
@@ -70,9 +52,11 @@ export default function Hoy() {
           <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.82rem', color: '#6b6a7a', whiteSpace: 'nowrap' }}>{cargaHoy}h / {LIMITE_HORAS}h</span>
         </div>
 
-        <div style={{ background: '#1a1a1f', border: '1px solid #2a2a32', borderRadius: 10, padding: '10px 16px', marginBottom: 24, fontSize: '0.78rem', color: '#6b6a7a' }}>
-          📌 <strong style={{ color: '#f0eff5' }}>Regla de prioridad:</strong> Vencidas primero → Para hoy → Próximas por fecha. En empate, menor esfuerzo primero.
-        </div>
+        {regla && (
+          <div style={{ background: '#1a1a1f', border: '1px solid #2a2a32', borderRadius: 10, padding: '10px 16px', marginBottom: 24, fontSize: '0.78rem', color: '#6b6a7a' }}>
+            📌 <strong style={{ color: '#f0eff5' }}>Regla de prioridad:</strong> {regla}
+          </div>
+        )}
 
         {cargando && <div style={{ textAlign: 'center', padding: '48px', color: '#6b6a7a' }}>Cargando tareas...</div>}
 
@@ -83,7 +67,7 @@ export default function Hoy() {
           </div>
         )}
 
-        {!cargando && !error && subtareas.length === 0 && (
+        {!cargando && !error && totalSubtareas === 0 && (
           <div style={{ textAlign: 'center', padding: '48px', color: '#6b6a7a' }}>
             <p style={{ fontSize: '1.1rem', marginBottom: 8 }}>🎉 No tienes tareas pendientes</p>
             <p style={{ fontSize: '0.85rem', marginBottom: 20 }}>Crea una actividad para empezar</p>
@@ -93,21 +77,21 @@ export default function Hoy() {
 
         {!cargando && vencidas.length > 0 && (
           <div style={{ marginBottom: 24 }}>
-            <p style={seccionLabel}>🔴 Vencidas</p>
+            <p style={seccionLabel}>🔴 Vencidas ({vencidas.length})</p>
             {vencidas.map(s => <Tarjeta key={s.id} sub={s} color="#f04a4a" chip="Vencida" navigate={navigate} />)}
           </div>
         )}
 
         {!cargando && paraHoy.length > 0 && (
           <div style={{ marginBottom: 24 }}>
-            <p style={seccionLabel}>🟡 Hacer hoy</p>
+            <p style={seccionLabel}>🟡 Hacer hoy ({paraHoy.length})</p>
             {paraHoy.map(s => <Tarjeta key={s.id} sub={s} color="#f0a500" chip="Hoy" navigate={navigate} />)}
           </div>
         )}
 
         {!cargando && proximas.length > 0 && (
           <div>
-            <p style={seccionLabel}>🔵 Próximas</p>
+            <p style={seccionLabel}>🔵 Próximas ({proximas.length})</p>
             {proximas.map(s => <Tarjeta key={s.id} sub={s} color="#3bbfa3" chip="Próxima" navigate={navigate} />)}
           </div>
         )}
