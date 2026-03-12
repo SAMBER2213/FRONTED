@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Sidebar, getHeaders } from './Sidebar'
 
 const BASE_URL = 'https://backend-planificador-3sre.onrender.com'
 const LIMITE_HORAS = 6
@@ -18,16 +19,9 @@ export default function Hoy() {
     setCargando(true)
     setError(null)
     try {
-      const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
-      const res = await fetch(`${BASE_URL}/api/hoy/`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Usuario-Id': usuario.id || ''
-        }
-      })
+      const res = await fetch(`${BASE_URL}/api/hoy/`, { headers: getHeaders() })
       if (!res.ok) throw new Error()
-      const json = await res.json()
-      setDatos(json)
+      setDatos(await res.json())
     } catch {
       setError('No se pudo cargar. Verifica tu conexión.')
     }
@@ -40,11 +34,22 @@ export default function Hoy() {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', background: '#0f0f11', color: '#f0eff5' }}>
       <Sidebar navigate={navigate} actual="hoy" />
-      <main style={{ padding: '36px 40px', maxWidth: 720 }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 4 }}>¿Qué tienes para hoy?</h2>
-        <p style={{ fontSize: '0.85rem', color: '#6b6a7a', marginBottom: 28 }}>{fecha}</p>
+      <main style={{ padding: '36px 40px', maxWidth: 760 }}>
 
-        <div style={{ background: '#1a1a1f', border: '1px solid #2a2a32', borderRadius: 14, padding: '16px 20px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+          <div>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 4 }}>¿Qué tienes para hoy?</h2>
+            <p style={{ fontSize: '0.85rem', color: '#6b6a7a', marginBottom: 28 }}>{fecha}</p>
+          </div>
+          <button onClick={() => navigate('/crear')}
+            style={{ padding: '9px 20px', background: '#7c6dfa', border: 'none', borderRadius: 10, color: 'white', fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap' }}>
+            + Nueva actividad
+          </button>
+        </div>
+
+        {/* Barra de carga */}
+        <div style={{ background: '#1a1a1f', border: '1px solid #2a2a32', borderRadius: 14, padding: '14px 20px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 16 }}>
           <span style={{ fontSize: '0.82rem', color: '#6b6a7a', whiteSpace: 'nowrap' }}>Carga del día</span>
           <div style={{ flex: 1, height: 6, background: '#2a2a32', borderRadius: 10, overflow: 'hidden' }}>
             <div style={{ width: `${Math.min((cargaHoy / LIMITE_HORAS) * 100, 100)}%`, height: '100%', background: cargaHoy >= LIMITE_HORAS ? '#f04a4a' : '#7c6dfa', borderRadius: 10 }}></div>
@@ -52,12 +57,14 @@ export default function Hoy() {
           <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.82rem', color: '#6b6a7a', whiteSpace: 'nowrap' }}>{cargaHoy}h / {LIMITE_HORAS}h</span>
         </div>
 
+        {/* Regla */}
         {regla && (
-          <div style={{ background: '#1a1a1f', border: '1px solid #2a2a32', borderRadius: 10, padding: '10px 16px', marginBottom: 24, fontSize: '0.78rem', color: '#6b6a7a' }}>
+          <div style={{ background: '#1a1a1f', border: '1px solid #2a2a32', borderRadius: 10, padding: '10px 16px', marginBottom: 28, fontSize: '0.78rem', color: '#6b6a7a' }}>
             📌 <strong style={{ color: '#f0eff5' }}>Regla de prioridad:</strong> {regla}
           </div>
         )}
 
+        {/* Estados */}
         {cargando && <div style={{ textAlign: 'center', padding: '48px', color: '#6b6a7a' }}>Cargando tareas...</div>}
 
         {error && (
@@ -70,29 +77,52 @@ export default function Hoy() {
         {!cargando && !error && totalSubtareas === 0 && (
           <div style={{ textAlign: 'center', padding: '48px', color: '#6b6a7a' }}>
             <p style={{ fontSize: '1.1rem', marginBottom: 8 }}>🎉 No tienes tareas pendientes</p>
-            <p style={{ fontSize: '0.85rem', marginBottom: 20 }}>Crea una actividad para empezar</p>
-            <button onClick={() => navigate('/crear')} style={{ padding: '10px 24px', background: '#7c6dfa', border: 'none', borderRadius: 10, color: 'white', fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Crear actividad</button>
+            <p style={{ fontSize: '0.85rem' }}>Agrega subtareas a tus actividades para verlas aquí</p>
           </div>
         )}
 
-        {!cargando && vencidas.length > 0 && (
-          <div style={{ marginBottom: 24 }}>
-            <p style={seccionLabel}>🔴 Vencidas ({vencidas.length})</p>
-            {vencidas.map(s => <Tarjeta key={s.id} sub={s} color="#f04a4a" chip="Vencida" navigate={navigate} />)}
-          </div>
-        )}
+        {/* Tabla de tareas */}
+        {!cargando && !error && totalSubtareas > 0 && (
+          <div style={{ background: '#1a1a1f', border: '1px solid #2a2a32', borderRadius: 14, overflow: 'hidden' }}>
 
-        {!cargando && paraHoy.length > 0 && (
-          <div style={{ marginBottom: 24 }}>
-            <p style={seccionLabel}>🟡 Hacer hoy ({paraHoy.length})</p>
-            {paraHoy.map(s => <Tarjeta key={s.id} sub={s} color="#f0a500" chip="Hoy" navigate={navigate} />)}
-          </div>
-        )}
+            {/* Cabecera tabla */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 140px 70px 70px', padding: '10px 18px', borderBottom: '1px solid #2a2a32', background: '#141418' }}>
+              <span style={thStyle}>Tarea</span>
+              <span style={thStyle}>Actividad · Curso</span>
+              <span style={{ ...thStyle, textAlign: 'center' }}>Fecha</span>
+              <span style={{ ...thStyle, textAlign: 'center' }}>Horas</span>
+            </div>
 
-        {!cargando && proximas.length > 0 && (
-          <div>
-            <p style={seccionLabel}>🔵 Próximas ({proximas.length})</p>
-            {proximas.map(s => <Tarjeta key={s.id} sub={s} color="#3bbfa3" chip="Próxima" navigate={navigate} />)}
+            {/* Sección Vencidas */}
+            {vencidas.length > 0 && (
+              <>
+                <SeccionHeader color="#f04a4a" emoji="🔴" label="Vencidas" count={vencidas.length} />
+                {vencidas.map((s, i) => (
+                  <FilaTarea key={s.id} sub={s} color="#f04a4a" navigate={navigate} ultimo={i === vencidas.length - 1 && paraHoy.length === 0 && proximas.length === 0} />
+                ))}
+              </>
+            )}
+
+            {/* Sección Hoy */}
+            {paraHoy.length > 0 && (
+              <>
+                <SeccionHeader color="#f0a500" emoji="🟡" label="Hacer hoy" count={paraHoy.length} />
+                {paraHoy.map((s, i) => (
+                  <FilaTarea key={s.id} sub={s} color="#f0a500" navigate={navigate} ultimo={i === paraHoy.length - 1 && proximas.length === 0} />
+                ))}
+              </>
+            )}
+
+            {/* Sección Próximas */}
+            {proximas.length > 0 && (
+              <>
+                <SeccionHeader color="#3bbfa3" emoji="🔵" label="Próximas" count={proximas.length} />
+                {proximas.map((s, i) => (
+                  <FilaTarea key={s.id} sub={s} color="#3bbfa3" navigate={navigate} ultimo={i === proximas.length - 1} />
+                ))}
+              </>
+            )}
+
           </div>
         )}
       </main>
@@ -100,50 +130,43 @@ export default function Hoy() {
   )
 }
 
-function Tarjeta({ sub, color, chip, navigate }) {
+function SeccionHeader({ color, emoji, label, count }) {
   return (
-    <div onClick={() => navigate(`/actividad/${sub.actividadId}`)}
-      style={{ background: '#1a1a1f', borderLeft: `3px solid ${color}`, border: '1px solid #2a2a32', borderRadius: 12, padding: '14px 18px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer' }}>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: '0.92rem', fontWeight: 500 }}>{sub.nombre}</div>
-        <div style={{ fontSize: '0.78rem', color: '#6b6a7a', marginTop: 3 }}>{sub.actividadTitulo} · {sub.actividadCurso}</div>
-      </div>
-      <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', padding: '3px 9px', borderRadius: 20, background: `${color}22`, color }}>{chip}</span>
-      <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.78rem', color: '#6b6a7a' }}>{sub.horas ? `${sub.horas}h` : '—'}</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', background: `${color}0f`, borderBottom: '1px solid #2a2a32', borderTop: '1px solid #2a2a32' }}>
+      <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color }}>{emoji} {label}</span>
+      <span style={{ fontSize: '0.68rem', background: `${color}22`, color, padding: '1px 8px', borderRadius: 20, fontWeight: 700 }}>{count}</span>
     </div>
   )
 }
 
-export function Sidebar({ navigate, actual }) {
-  const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
-  const nombre = usuario.nombre ? `${usuario.nombre} ${usuario.apellido || ''}`.trim() : 'Usuario'
-  const correo = usuario.correo || ''
-
-  function cerrarSesion() {
-    localStorage.removeItem('usuario')
-    navigate('/login')
-  }
-
+function FilaTarea({ sub, color, navigate, ultimo }) {
   return (
-    <aside style={{ background: '#1a1a1f', borderRight: '1px solid #2a2a32', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <div style={{ padding: '0 8px 20px', borderBottom: '1px solid #2a2a32', marginBottom: 8 }}>
-        <div style={{ fontSize: '1rem', fontWeight: 700, color: '#7c6dfa' }}>📚 Planificador</div>
-        <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#f0eff5', marginTop: 4 }}>{nombre}</div>
-        <div style={{ fontSize: '0.75rem', color: '#6b6a7a', marginTop: 1 }}>{correo}</div>
+    <div onClick={() => navigate(`/actividad/${sub.actividadId}`)}
+      style={{
+        display: 'grid', gridTemplateColumns: '1fr 140px 70px 70px',
+        padding: '12px 18px', cursor: 'pointer',
+        borderBottom: ultimo ? 'none' : '1px solid #1e1e25',
+        transition: 'background 0.15s'
+      }}
+      onMouseEnter={e => e.currentTarget.style.background = '#1e1e25'}
+      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+    >
+      <div>
+        <div style={{ fontSize: '0.88rem', fontWeight: 500, color: '#f0eff5' }}>{sub.nombre}</div>
       </div>
-      <button onClick={() => navigate('/crear')} style={nav(actual === 'crear')}>➕ Crear actividad</button>
-      <button onClick={() => navigate('/hoy')} style={nav(actual === 'hoy')}>📅 Hoy</button>
-      <button onClick={() => navigate('/actividades')} style={nav(actual === 'actividades')}>📋 Actividades</button>
-      <button onClick={() => navigate('/progreso')} style={nav(actual === 'progreso')}>📊 Progreso</button>
-      <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid #2a2a32' }}>
-        <button onClick={cerrarSesion}
-          style={{ width: '100%', padding: '8px 12px', background: 'none', border: '1px solid #2a2a32', borderRadius: 10, color: '#6b6a7a', fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-          ↩ Cerrar sesión
-        </button>
+      <div style={{ fontSize: '0.75rem', color: '#6b6a7a', alignSelf: 'center', paddingRight: 8 }}>
+        {sub.actividadTitulo} · {sub.actividadCurso}
       </div>
-    </aside>
+      <div style={{ fontSize: '0.78rem', color: sub.fecha ? color : '#6b6a7a', textAlign: 'center', alignSelf: 'center', fontFamily: 'DM Mono, monospace' }}>
+        {sub.fecha || '—'}
+      </div>
+      <div style={{ fontSize: '0.78rem', color: '#6b6a7a', textAlign: 'center', alignSelf: 'center', fontFamily: 'DM Mono, monospace' }}>
+        {sub.horas ? `${sub.horas}h` : '—'}
+      </div>
+    </div>
   )
 }
 
-const nav = (activo) => ({ padding: '9px 12px', borderRadius: 10, fontSize: '0.88rem', color: activo ? '#7c6dfa' : '#6b6a7a', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 9, background: activo ? 'rgba(124,109,250,0.12)' : 'none', border: 'none', width: '100%', textAlign: 'left', fontFamily: 'DM Sans, sans-serif', fontWeight: activo ? 600 : 400 })
-const seccionLabel = { fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#6b6a7a', marginBottom: 10 }
+export { Sidebar }
+
+const thStyle = { fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#6b6a7a' }

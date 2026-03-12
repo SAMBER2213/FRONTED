@@ -33,8 +33,18 @@ export default function Progreso() {
     <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', background: '#0f0f11', color: '#f0eff5' }}>
       <Sidebar navigate={navigate} actual="progreso" />
       <main style={{ padding: '36px 40px', maxWidth: 720 }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 4 }}>Progreso</h2>
-        <p style={{ fontSize: '0.85rem', color: '#6b6a7a', marginBottom: 28 }}>Avance global de todas tus actividades evaluativas</p>
+
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+          <div>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 4 }}>Progreso</h2>
+            <p style={{ fontSize: '0.85rem', color: '#6b6a7a', marginBottom: 28 }}>Avance global de todas tus actividades evaluativas</p>
+          </div>
+          <button onClick={() => navigate('/crear')}
+            style={{ padding: '9px 20px', background: '#7c6dfa', border: 'none', borderRadius: 10, color: 'white', fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap' }}>
+            + Nueva actividad
+          </button>
+        </div>
 
         {cargando && <div style={{ textAlign: 'center', padding: '48px', color: '#6b6a7a' }}>Cargando progreso...</div>}
 
@@ -48,8 +58,7 @@ export default function Progreso() {
         {!cargando && !error && actividades.length === 0 && (
           <div style={{ textAlign: 'center', padding: '48px', color: '#6b6a7a' }}>
             <p style={{ fontSize: '1.1rem', marginBottom: 8 }}>No tienes actividades aún</p>
-            <p style={{ fontSize: '0.85rem', marginBottom: 20 }}>Crea una actividad para ver tu progreso aquí</p>
-            <button onClick={() => navigate('/crear')} style={{ padding: '10px 24px', background: '#7c6dfa', border: 'none', borderRadius: 10, color: 'white', fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Crear actividad</button>
+            <p style={{ fontSize: '0.85rem' }}>Crea una actividad para ver tu progreso aquí</p>
           </div>
         )}
 
