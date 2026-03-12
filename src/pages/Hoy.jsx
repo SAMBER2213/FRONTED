@@ -89,7 +89,7 @@ export default function Hoy() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 140px 70px 70px', padding: '10px 18px', borderBottom: '1px solid #2a2a32', background: '#141418' }}>
               <span style={thStyle}>Tarea</span>
               <span style={thStyle}>Actividad · Curso</span>
-              <span style={{ ...thStyle, textAlign: 'center' }}>Fecha</span>
+              <span style={{ ...thStyle, textAlign: 'center' }}>Fecha / Hora</span>
               <span style={{ ...thStyle, textAlign: 'center' }}>Horas</span>
             </div>
 
@@ -139,11 +139,20 @@ function SeccionHeader({ color, emoji, label, count }) {
   )
 }
 
+function formatHora12(hora24) {
+  if (!hora24) return ''
+  const [h, m] = hora24.split(':')
+  const n = parseInt(h)
+  const ampm = n >= 12 ? 'PM' : 'AM'
+  const h12 = n > 12 ? n - 12 : n === 0 ? 12 : n
+  return `${String(h12).padStart(2, '0')}:${m} ${ampm}`
+}
+
 function FilaTarea({ sub, color, navigate, ultimo }) {
   return (
     <div onClick={() => navigate(`/actividad/${sub.actividadId}`)}
       style={{
-        display: 'grid', gridTemplateColumns: '1fr 140px 70px 70px',
+        display: 'grid', gridTemplateColumns: '1fr 140px 90px 70px',
         padding: '12px 18px', cursor: 'pointer',
         borderBottom: ultimo ? 'none' : '1px solid #1e1e25',
         transition: 'background 0.15s'
@@ -157,8 +166,15 @@ function FilaTarea({ sub, color, navigate, ultimo }) {
       <div style={{ fontSize: '0.75rem', color: '#6b6a7a', alignSelf: 'center', paddingRight: 8 }}>
         {sub.actividadTitulo} · {sub.actividadCurso}
       </div>
-      <div style={{ fontSize: '0.78rem', color: sub.fecha ? color : '#6b6a7a', textAlign: 'center', alignSelf: 'center', fontFamily: 'DM Mono, monospace' }}>
-        {sub.fecha || '—'}
+      <div style={{ textAlign: 'center', alignSelf: 'center' }}>
+        <div style={{ fontSize: '0.78rem', color: sub.fecha ? color : '#6b6a7a', fontFamily: 'DM Mono, monospace' }}>
+          {sub.fecha || '—'}
+        </div>
+        {sub.hora && (
+          <div style={{ fontSize: '0.7rem', color: '#6b6a7a', fontFamily: 'DM Mono, monospace', marginTop: 2 }}>
+            {formatHora12(sub.hora)}
+          </div>
+        )}
       </div>
       <div style={{ fontSize: '0.78rem', color: '#6b6a7a', textAlign: 'center', alignSelf: 'center', fontFamily: 'DM Mono, monospace' }}>
         {sub.horas ? `${sub.horas}h` : '—'}
