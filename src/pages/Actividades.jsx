@@ -1,3 +1,4 @@
+// Actividades.jsx — Lista todas las actividades guardadas
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Sidebar, getHeaders } from './Sidebar'
@@ -39,68 +40,174 @@ export default function Actividades() {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', background: '#0f0f11', color: '#f0eff5' }}>
+    <div style={layoutBase}>
       <Sidebar navigate={navigate} actual="actividades" />
-      <main style={{ padding: '36px 40px', maxWidth: 720 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Actividades</h2>
-          <button onClick={() => navigate('/crear')} style={{ padding: '9px 20px', background: '#7c6dfa', border: 'none', borderRadius: 10, color: 'white', fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-            + Nueva actividad
-          </button>
+      <main style={mainStyle}>
+        {/* Encabezado */}
+        <div style={{ width: '100%', maxWidth: 720, marginBottom: 28 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+            <h2 style={tituloPagina}>Actividades</h2>
+            <button onClick={() => navigate('/crear')} style={btnPrimario}>
+              ✏️ Nueva actividad
+            </button>
+          </div>
+          <p style={subtituloPagina}>Todas tus actividades evaluativas</p>
         </div>
-        <p style={{ fontSize: '0.85rem', color: '#6b6a7a', marginBottom: 28 }}>Todas tus actividades evaluativas</p>
 
-        {cargando && <div style={{ textAlign: 'center', padding: '48px', color: '#6b6a7a' }}>Cargando actividades...</div>}
+        {/* Estado: cargando */}
+        {cargando && <div style={estadoCentro}>Cargando actividades...</div>}
 
+        {/* Estado: error */}
         {error && (
-          <div style={{ background: 'rgba(240,74,74,0.1)', border: '1px solid #f04a4a', borderRadius: 12, padding: '20px', textAlign: 'center' }}>
-            <p style={{ color: '#f04a4a', marginBottom: 12 }}>⚠️ {error}</p>
-            <button onClick={cargar} style={{ padding: '8px 20px', background: 'none', border: '1px solid #f04a4a', borderRadius: 8, color: '#f04a4a', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Reintentar</button>
+          <div style={tarjetaError}>
+            <p style={{ color: '#f07070', marginBottom: 14, fontSize: '0.95rem', fontWeight: 600 }}>⚠️ {error}</p>
+            <button onClick={cargar} style={btnError}>Reintentar</button>
           </div>
         )}
 
+        {/* Sin actividades — botón centrado */}
         {!cargando && !error && actividades.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '48px', color: '#6b6a7a' }}>
-            <p style={{ fontSize: '1.1rem', marginBottom: 8 }}>No tienes actividades aún</p>
-            <p style={{ fontSize: '0.85rem', marginBottom: 20 }}>Crea tu primera actividad evaluativa</p>
-            <button onClick={() => navigate('/crear')} style={{ padding: '10px 24px', background: '#7c6dfa', border: 'none', borderRadius: 10, color: 'white', fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Crear actividad</button>
+          <div style={{ textAlign: 'center', padding: '64px 24px' }}>
+            <div style={{ fontSize: '3rem', marginBottom: 16 }}>📋</div>
+            <p style={{ fontSize: '1.15rem', fontWeight: 700, color: '#f0eff5', marginBottom: 8 }}>No tienes actividades aún</p>
+            <p style={{ fontSize: '0.88rem', color: '#8b8a9a', marginBottom: 28 }}>Crea tu primera actividad evaluativa</p>
+            <button onClick={() => navigate('/crear')} style={btnPrimario}>
+              ✏️ Crear actividad
+            </button>
           </div>
         )}
 
-        {!cargando && !error && actividades.map(act => {
-          const subs = act.subtareas || []
-          const hechas = subs.filter(s => s.estado === 'hecho').length
-          const pct = subs.length > 0 ? Math.round((hechas / subs.length) * 100) : 0
-          const hoy = new Date().toISOString().split('T')[0]
-          const vencida = act.fechaLimite && act.fechaLimite < hoy && pct < 100
-          const color = pct === 100 ? '#3bbfa3' : pct >= 50 ? '#7c6dfa' : '#f0a500'
+        {/* Lista de actividades */}
+        {!cargando && !error && actividades.length > 0 && (
+          <div style={{ width: '100%', maxWidth: 720 }}>
+            {actividades.map(act => {
+              const subs = act.subtareas || []
+              const hechas = subs.filter(s => s.estado === 'hecho').length
+              const pct = subs.length > 0 ? Math.round((hechas / subs.length) * 100) : 0
+              const hoyStr = new Date().toISOString().split('T')[0]
+              const vencida = act.fechaLimite && act.fechaLimite < hoyStr && pct < 100
+              const color = pct === 100 ? '#3bbfa3' : pct >= 50 ? '#a78bfa' : '#f0a500'
 
-          return (
-            <div key={act.id} style={{ background: '#1a1a1f', border: `1px solid ${vencida ? '#f04a4a' : '#2a2a32'}`, borderRadius: 12, padding: '16px 20px', marginBottom: 10 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 10 }}>
-                <div style={{ flex: 1, cursor: 'pointer' }} onClick={() => navigate(`/actividad/${act.id}`)}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <p style={{ fontSize: '0.95rem', fontWeight: 600 }}>{act.titulo}</p>
-                    {vencida && <span style={{ fontSize: '0.68rem', fontWeight: 700, background: 'rgba(240,74,74,0.15)', color: '#f04a4a', padding: '2px 8px', borderRadius: 20 }}>VENCIDA</span>}
-                    {pct === 100 && <span style={{ fontSize: '0.68rem', fontWeight: 700, background: 'rgba(59,191,163,0.15)', color: '#3bbfa3', padding: '2px 8px', borderRadius: 20 }}>✓ COMPLETADA</span>}
+              return (
+                <div key={act.id} style={tarjetaActividad(vencida)}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 12 }}>
+                    <div style={{ flex: 1, cursor: 'pointer' }} onClick={() => navigate(`/actividad/${act.id}`)}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                        <p style={{ fontSize: '1rem', fontWeight: 700, color: '#f0eff5' }}>{act.titulo}</p>
+                        {vencida && <Chip texto="VENCIDA" color="#f04a4a" />}
+                        {pct === 100 && <Chip texto="✓ COMPLETADA" color="#3bbfa3" />}
+                      </div>
+                      <p style={{ fontSize: '0.8rem', color: '#8b8a9a', fontWeight: 500 }}>
+                        {act.tipo} · {act.curso}{act.fechaLimite ? ` · Vence ${act.fechaLimite}` : ''}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => eliminar(act.id)}
+                      disabled={eliminando === act.id}
+                      style={btnEliminar}
+                    >
+                      {eliminando === act.id ? '...' : '🗑'}
+                    </button>
                   </div>
-                  <p style={{ fontSize: '0.78rem', color: '#6b6a7a' }}>{act.tipo} · {act.curso} {act.fechaLimite ? `· Vence ${act.fechaLimite}` : ''}</p>
+
+                  {/* Barra progreso */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ flex: 1, height: 5, background: '#2a2a38', borderRadius: 10, overflow: 'hidden' }}>
+                      <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 10, transition: 'width 0.3s' }} />
+                    </div>
+                    <span style={{ fontSize: '0.78rem', color: '#8b8a9a', fontWeight: 600, minWidth: 44 }}>
+                      {hechas}/{subs.length} · {pct}%
+                    </span>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8, marginLeft: 16 }}>
-                  <button onClick={() => navigate(`/actividad/${act.id}`)} style={{ background: 'none', border: '1px solid #2a2a32', borderRadius: 8, color: '#6b6a7a', fontSize: '0.78rem', padding: '4px 12px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Ver detalle</button>
-                  <button onClick={() => eliminar(act.id)} disabled={eliminando === act.id} style={{ background: 'none', border: '1px solid #f04a4a', borderRadius: 8, color: '#f04a4a', fontSize: '0.78rem', padding: '4px 12px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', opacity: eliminando === act.id ? 0.5 : 1 }}>
-                    {eliminando === act.id ? '...' : 'Eliminar'}
-                  </button>
-                </div>
-              </div>
-              <div style={{ height: 4, background: '#2a2a32', borderRadius: 10, overflow: 'hidden', marginBottom: 6 }}>
-                <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 10 }}></div>
-              </div>
-              <p style={{ fontSize: '0.75rem', color: '#6b6a7a' }}>{subs.length === 0 ? 'Sin subtareas' : `${hechas}/${subs.length} subtareas · ${pct}% completado`}</p>
-            </div>
-          )
-        })}
+              )
+            })}
+          </div>
+        )}
       </main>
     </div>
   )
+}
+
+function Chip({ texto, color }) {
+  return (
+    <span style={{ fontSize: '0.68rem', fontWeight: 800, background: `${color}22`, color, padding: '2px 9px', borderRadius: 20, textTransform: 'uppercase' }}>
+      {texto}
+    </span>
+  )
+}
+
+// ─── Estilos ─────────────────────────────────────────────────
+const layoutBase = {
+  display: 'flex',
+  minHeight: '100vh',
+  fontFamily: 'DM Sans, sans-serif',
+  background: '#0f0f15',
+  color: '#f0eff5',
+}
+
+const mainStyle = {
+  marginLeft: '220px',
+  flex: 1,
+  padding: '40px 32px',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+}
+
+const tituloPagina = { fontSize: '1.6rem', fontWeight: 800, color: '#f0eff5', letterSpacing: '-0.02em' }
+const subtituloPagina = { fontSize: '0.88rem', color: '#8b8a9a' }
+const estadoCentro = { textAlign: 'center', padding: '64px', color: '#8b8a9a', fontSize: '0.95rem' }
+
+const tarjetaError = {
+  maxWidth: 480,
+  width: '100%',
+  background: 'rgba(240,74,74,0.08)',
+  border: '1px solid rgba(240,74,74,0.3)',
+  borderRadius: 14,
+  padding: '24px',
+  textAlign: 'center'
+}
+
+const btnError = {
+  padding: '9px 22px',
+  background: 'none',
+  border: '1px solid #f04a4a',
+  borderRadius: 8,
+  color: '#f07070',
+  cursor: 'pointer',
+  fontFamily: 'DM Sans, sans-serif',
+  fontSize: '0.88rem',
+  fontWeight: 600,
+}
+
+const tarjetaActividad = (vencida) => ({
+  background: '#1a1a24',
+  border: `1px solid ${vencida ? 'rgba(240,74,74,0.4)' : '#2a2a38'}`,
+  borderRadius: 14,
+  padding: '18px 22px',
+  marginBottom: 12,
+})
+
+const btnPrimario = {
+  padding: '10px 22px',
+  background: '#a78bfa',
+  border: 'none',
+  borderRadius: 10,
+  color: 'white',
+  fontSize: '0.9rem',
+  fontWeight: 700,
+  cursor: 'pointer',
+  fontFamily: 'DM Sans, sans-serif',
+}
+
+const btnEliminar = {
+  padding: '6px 10px',
+  background: 'rgba(240,74,74,0.08)',
+  border: '1px solid rgba(240,74,74,0.2)',
+  borderRadius: 8,
+  color: '#f07070',
+  cursor: 'pointer',
+  fontSize: '0.88rem',
+  flexShrink: 0,
 }
