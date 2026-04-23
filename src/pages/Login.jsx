@@ -27,7 +27,7 @@ export default function Login() {
     setCargando(true)
     setErrorGeneral(null)
     try {
-      const res = await fetch(`${BASE_URL}/api/login/`, {
+      const res = await fetch(`${BASE_URL}/api/auth/login/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ correo: form.correo.trim().toLowerCase(), clave: form.clave })
@@ -60,7 +60,7 @@ export default function Login() {
     setCargando(true)
     setErrorGeneral(null)
     try {
-      const res = await fetch(`${BASE_URL}/api/registro/`, {
+      const res = await fetch(`${BASE_URL}/api/auth/registro/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre: form.nombre, apellido: form.apellido, correo: form.correo.trim().toLowerCase(), clave: form.clave, confirmarClave: form.confirmarClave })
