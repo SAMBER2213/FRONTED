@@ -34,14 +34,14 @@ function HoraPicker({ value, onChange }) {
       <select value={hora.h} onChange={e => update('h', e.target.value)} style={selStyle}>
         {horas.map(h => <option key={h}>{h}</option>)}
       </select>
-      <span style={{ color: '#6b6a7a', fontWeight: 700 }}>:</span>
+      <span style={{ color: '#9998a8', fontWeight: 700 }}>:</span>
       <select value={hora.m} onChange={e => update('m', e.target.value)} style={selStyle}>
         {minutos.map(m => <option key={m}>{m}</option>)}
       </select>
-      <div style={{ display: 'flex', background: '#0f0f11', border: '1px solid #2a2a32', borderRadius: 8, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', background: '#0f0f15', border: '1px solid #2a2a38', borderRadius: 8, overflow: 'hidden' }}>
         {['AM', 'PM'].map(p => (
           <button key={p} onClick={() => update('ampm', p)} type="button"
-            style={{ padding: '8px 12px', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '0.82rem', fontWeight: 700, background: hora.ampm === p ? '#7c6dfa' : 'transparent', color: hora.ampm === p ? 'white' : '#6b6a7a', transition: 'all 0.15s' }}>
+            style={{ padding: '8px 12px', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '0.82rem', fontWeight: 700, background: hora.ampm === p ? '#a78bfa' : 'transparent', color: hora.ampm === p ? 'white' : '#6b6a7a', transition: 'all 0.15s' }}>
             {p}
           </button>
         ))}
@@ -72,10 +72,6 @@ export default function Actividad() {
   const [conflicto, setConflicto] = useState(null)
   const [avance, setAvance] = useState(null)
   const [nota, setNota] = useState('')
-  const [mostrarFormSub, setMostrarFormSub] = useState(false)
-  const [nuevaSub, setNuevaSub] = useState({ nombre: '', fecha: '', hora: '', horas: '' })
-  const [erroresSub, setErroresSub] = useState({})
-  const [guardandoSub, setGuardandoSub] = useState(false)
   const LIMITE_HORAS = 6
 
   useEffect(() => { cargar() }, [id])
@@ -123,25 +119,6 @@ export default function Actividad() {
     setConflicto(null)
   }
 
-  async function agregarSubtarea() {
-    const e = {}
-    if (!nuevaSub.nombre.trim()) e.nombre = 'El nombre es obligatorio'
-    if (!nuevaSub.horas || Number(nuevaSub.horas) <= 0) e.horas = 'Las horas deben ser mayor a 0'
-    if (Object.keys(e).length > 0) { setErroresSub(e); return }
-    setGuardandoSub(true)
-    try {
-      await fetch(`${BASE_URL}/api/actividades/${id}/subtareas/`, {
-        method: 'POST', headers: getHeaders(),
-        body: JSON.stringify({ nombre: nuevaSub.nombre.trim(), fecha: nuevaSub.fecha, hora: nuevaSub.hora || '', horas: Number(nuevaSub.horas) })
-      })
-      setNuevaSub({ nombre: '', fecha: '', hora: '', horas: '' })
-      setErroresSub({})
-      setMostrarFormSub(false)
-      await cargar()
-    } catch { alert('Error al agregar subtarea.') }
-    setGuardandoSub(false)
-  }
-
   async function registrarAvance(sub, estado) {
     try {
       await fetch(`${BASE_URL}/api/actividades/${id}/subtareas/${sub.id}/`, {
@@ -168,28 +145,28 @@ export default function Actividad() {
   const progreso = subtareas.length > 0 ? Math.round((hechas / subtareas.length) * 100) : 0
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', background: '#0f0f11', color: '#f0eff5' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', background: '#0f0f15', color: '#f0eff5' }}>
       <Sidebar navigate={navigate} actual="actividades" />
-      <main style={{ padding: '36px 40px', maxWidth: 720 }}>
-        <button onClick={() => navigate('/actividades')} style={{ background: 'none', border: 'none', color: '#6b6a7a', cursor: 'pointer', fontSize: '0.85rem', marginBottom: 20, fontFamily: 'DM Sans, sans-serif' }}>← Volver</button>
+      <main style={{ marginLeft: '220px', flex: 1, padding: '40px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><div style={{ width: '100%', maxWidth: 720 }}>
+        <button onClick={() => navigate('/actividades')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#1e1e2a', border: '2px solid #3a3a50', borderRadius: 10, color: '#d0cfdf', fontSize: '0.88rem', fontWeight: 800, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', marginBottom: 20 }}>← Volver</button>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 24 }}>
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 4 }}>{actividad.titulo}</h2>
-            <p style={{ fontSize: '0.85rem', color: '#6b6a7a' }}>{actividad.tipo} · {actividad.curso} {actividad.fechaLimite ? `· Vence ${actividad.fechaLimite}` : ''}</p>
+            <h2 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: 4 }}>{actividad.titulo}</h2>
+            <p style={{ fontSize: '0.85rem', color: '#9998a8' }}>{actividad.tipo} · {actividad.curso} {actividad.fechaLimite ? `· Vence ${actividad.fechaLimite}` : ''}</p>
           </div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <span style={{ background: 'rgba(124,109,250,0.15)', border: '1px solid #7c6dfa', color: '#7c6dfa', borderRadius: 20, padding: '4px 14px', fontSize: '0.8rem', fontWeight: 600 }}>{progreso}% completado</span>
+            <span style={{ background: 'rgba(167,139,250,0.15)', border: '1px solid rgba(167,139,250,0.5)', color: '#a78bfa', borderRadius: 20, padding: '4px 14px', fontSize: '0.8rem', fontWeight: 600 }}>{progreso}% completado</span>
             <button onClick={eliminarActividad} style={{ background: 'none', border: '1px solid #f04a4a', borderRadius: 8, color: '#f04a4a', fontSize: '0.78rem', padding: '4px 10px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Eliminar</button>
           </div>
         </div>
 
-        <div style={{ background: '#1a1a1f', border: '1px solid #2a2a32', borderRadius: 14, padding: '16px 20px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
-          <span style={{ fontSize: '0.82rem', color: '#6b6a7a' }}>Progreso</span>
+        <div style={{ background: '#1a1a24', border: '1px solid #2a2a38', borderRadius: 14, padding: '16px 20px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
+          <span style={{ fontSize: '0.82rem', color: '#9998a8' }}>Progreso</span>
           <div style={{ flex: 1, height: 6, background: '#2a2a32', borderRadius: 10, overflow: 'hidden' }}>
-            <div style={{ width: `${progreso}%`, height: '100%', background: '#7c6dfa', borderRadius: 10, transition: 'width 0.4s' }}></div>
+            <div style={{ width: `${progreso}%`, height: '100%', background: '#a78bfa', borderRadius: 10, transition: 'width 0.4s' }}></div>
           </div>
-          <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.82rem', color: '#6b6a7a' }}>{hechas}/{subtareas.length} subtareas</span>
+          <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.82rem', color: '#9998a8' }}>{hechas}/{subtareas.length} subtareas</span>
         </div>
 
         {conflicto && (
@@ -206,83 +183,35 @@ export default function Actividad() {
         <p style={labelSeccion}>Subtareas del plan</p>
 
         {subtareas.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '32px', color: '#6b6a7a', fontSize: '0.85rem' }}>Esta actividad no tiene subtareas.</div>
+          <div style={{ textAlign: 'center', padding: '32px', color: '#9998a8', fontSize: '0.85rem' }}>Esta actividad no tiene subtareas.</div>
         )}
 
         {subtareas.map(sub => (
-          <div key={sub.id} style={{ background: '#1a1a1f', border: `1px solid ${sub.estado === 'hecho' ? '#3bbfa3' : '#2a2a32'}`, borderRadius: 12, padding: '14px 18px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div key={sub.id} style={{ background: '#1a1a24', border: `1px solid ${sub.estado === 'hecho' ? '#3bbfa3' : '#2a2a32'}`, borderRadius: 12, padding: '14px 18px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: '0.92rem', fontWeight: 500, textDecoration: sub.estado === 'hecho' ? 'line-through' : 'none', color: sub.estado === 'hecho' ? '#6b6a7a' : '#f0eff5' }}>{sub.nombre}</div>
-              <div style={{ fontSize: '0.78rem', color: '#6b6a7a', marginTop: 3 }}>
+              <div style={{ fontSize: '0.78rem', color: '#9998a8', marginTop: 3 }}>
                 {sub.fecha || 'Sin fecha'}{sub.hora ? ` · ${formatHora12(sub.hora)}` : ''} · {sub.horas}h {sub.nota && `· 📝 ${sub.nota}`}
               </div>
             </div>
             <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', padding: '3px 9px', borderRadius: 20, background: sub.estado === 'hecho' ? 'rgba(59,191,163,0.15)' : sub.estado === 'pospuesto' ? 'rgba(240,165,0,0.15)' : 'rgba(107,106,122,0.15)', color: sub.estado === 'hecho' ? '#3bbfa3' : sub.estado === 'pospuesto' ? '#f0a500' : '#6b6a7a' }}>
               {sub.estado === 'hecho' ? 'Hecho' : sub.estado === 'pospuesto' ? 'Pospuesto' : 'Pendiente'}
             </span>
-            <button onClick={() => abrirReprogramar(sub)} style={{ background: 'none', border: '1px solid #2a2a32', borderRadius: 8, color: '#6b6a7a', fontSize: '0.78rem', padding: '4px 10px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Reprogramar</button>
+            <button onClick={() => abrirReprogramar(sub)} style={{ background: 'none', border: '1px solid #2a2a38', borderRadius: 8, color: '#9998a8', fontSize: '0.78rem', padding: '4px 10px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Reprogramar</button>
             {sub.estado !== 'hecho' && (
-              <button onClick={() => { setAvance(sub); setNota('') }} style={{ background: 'none', border: '1px solid #7c6dfa', borderRadius: 8, color: '#7c6dfa', fontSize: '0.78rem', padding: '4px 10px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Registrar</button>
+              <button onClick={() => { setAvance(sub); setNota('') }} style={{ background: 'none', border: '1px solid rgba(167,139,250,0.5)', borderRadius: 8, color: '#a78bfa', fontSize: '0.78rem', padding: '4px 10px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Registrar</button>
             )}
           </div>
         ))}
-
-        {/* Botón agregar subtarea */}
-        <div style={{ marginTop: 16, marginBottom: 8 }}>
-          {!mostrarFormSub ? (
-            <button onClick={() => setMostrarFormSub(true)}
-              style={{ padding: '8px 18px', background: 'rgba(124,109,250,0.15)', border: '1px solid #7c6dfa', borderRadius: 10, color: '#7c6dfa', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-              + Agregar subtarea
-            </button>
-          ) : (
-            <div style={{ background: '#1a1a1f', border: '1px solid #2a2a32', borderRadius: 14, padding: '20px' }}>
-              <p style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#6b6a7a', marginBottom: 14 }}>Nueva subtarea</p>
-              <div style={{ marginBottom: 12 }}>
-                <input placeholder="Nombre de la subtarea" value={nuevaSub.nombre}
-                  onChange={e => setNuevaSub({ ...nuevaSub, nombre: e.target.value })}
-                  style={{ ...inp, border: `1px solid ${erroresSub.nombre ? '#f04a4a' : '#2a2a32'}` }} />
-                {erroresSub.nombre && <p style={{ fontSize: '0.75rem', color: '#f04a4a', marginTop: 4 }}>{erroresSub.nombre}</p>}
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-                <div>
-                  <label style={lbl}>Fecha</label>
-                  <input type="date" value={nuevaSub.fecha}
-                    onChange={e => setNuevaSub({ ...nuevaSub, fecha: e.target.value, hora: nuevaSub.hora || '08:00' })}
-                    style={inp} />
-                </div>
-                <div>
-                  <label style={lbl}>Horas de estudio</label>
-                  <input type="number" placeholder="Ej: 2" min="0" value={nuevaSub.horas}
-                    onChange={e => setNuevaSub({ ...nuevaSub, horas: e.target.value })}
-                    style={{ ...inp, border: `1px solid ${erroresSub.horas ? '#f04a4a' : '#2a2a32'}` }} />
-                  {erroresSub.horas && <p style={{ fontSize: '0.75rem', color: '#f04a4a', marginTop: 4 }}>{erroresSub.horas}</p>}
-                </div>
-              </div>
-              {nuevaSub.fecha && (
-                <div style={{ marginBottom: 16 }}>
-                  <label style={lbl}>Hora (opcional)</label>
-                  <HoraPicker value={nuevaSub.hora} onChange={h => setNuevaSub({ ...nuevaSub, hora: h })} />
-                </div>
-              )}
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button onClick={() => { setMostrarFormSub(false); setNuevaSub({ nombre: '', fecha: '', hora: '', horas: '' }); setErroresSub({}) }} style={btnSec}>Cancelar</button>
-                <button onClick={agregarSubtarea} disabled={guardandoSub}
-                  style={{ ...btnPri, opacity: guardandoSub ? 0.6 : 1 }}>
-                  {guardandoSub ? 'Guardando...' : 'Guardar subtarea'}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
 
         {/* Modal Reprogramar */}
         {reprogramando && !conflicto && (
           <div style={overlay}>
             <div style={modal}>
               <h3 style={{ marginBottom: 4, fontSize: '1.1rem' }}>Reprogramar subtarea</h3>
-              <p style={{ fontSize: '0.82rem', color: '#6b6a7a', marginBottom: 20 }}>{reprogramando.nombre}</p>
+              <p style={{ fontSize: '0.82rem', color: '#9998a8', marginBottom: 20 }}>{reprogramando.nombre}</p>
               <label style={lbl}>Nueva fecha</label>
-              <input type="date" value={nuevaFecha} onChange={e => { setNuevaFecha(e.target.value); if (!nuevaHora) setNuevaHora('08:00') }} style={{ ...inp, marginBottom: 14 }} />
+              <input type="date" value={nuevaFecha} onChange={e => setNuevaFecha(e.target.value)} style={{ ...inp, marginBottom: 14 }} />
               {nuevaFecha && (
                 <>
                   <label style={lbl}>Hora (opcional)</label>
@@ -306,7 +235,7 @@ export default function Actividad() {
           <div style={overlay}>
             <div style={modal}>
               <h3 style={{ marginBottom: 4, fontSize: '1.1rem' }}>Registrar avance</h3>
-              <p style={{ fontSize: '0.82rem', color: '#6b6a7a', marginBottom: 20 }}>{avance.nombre}</p>
+              <p style={{ fontSize: '0.82rem', color: '#9998a8', marginBottom: 20 }}>{avance.nombre}</p>
               <label style={lbl}>Nota opcional</label>
               <input placeholder="Ej: Completé los ejercicios 1 al 5" value={nota} onChange={e => setNota(e.target.value)} style={{ ...inp, marginBottom: 20 }} />
               <div style={{ display: 'flex', gap: 10 }}>
@@ -317,6 +246,7 @@ export default function Actividad() {
             </div>
           </div>
         )}
+      </div>
       </main>
     </div>
   )
@@ -324,17 +254,17 @@ export default function Actividad() {
 
 function Pantalla({ children, error }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0f0f11', fontFamily: 'DM Sans, sans-serif' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0f0f15', fontFamily: 'DM Sans, sans-serif' }}>
       <p style={{ color: error ? '#f04a4a' : '#6b6a7a' }}>{children}</p>
     </div>
   )
 }
 
-const labelSeccion = { fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#6b6a7a', marginBottom: 10 }
-const lbl = { display: 'block', fontSize: '0.82rem', color: '#6b6a7a', marginBottom: 6 }
-const inp = { width: '100%', background: '#0f0f11', border: '1px solid #2a2a32', borderRadius: 10, padding: '10px 14px', color: '#f0eff5', fontFamily: 'DM Sans, sans-serif', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }
-const btnPri = { padding: '9px 20px', background: '#7c6dfa', border: 'none', borderRadius: 10, color: 'white', fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }
-const btnSec = { padding: '9px 20px', background: 'none', border: '1px solid #2a2a32', borderRadius: 10, color: '#6b6a7a', fontSize: '0.88rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }
+const labelSeccion = { fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9998a8', marginBottom: 10 }
+const lbl = { display: 'block', fontSize: '0.82rem', color: '#9998a8', marginBottom: 6 }
+const inp = { width: '100%', background: '#0f0f15', border: '1px solid #2a2a38', borderRadius: 10, padding: '10px 14px', color: '#f0eff5', fontFamily: 'DM Sans, sans-serif', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }
+const btnPri = { padding: '9px 20px', background: '#a78bfa', border: 'none', borderRadius: 10, color: 'white', fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }
+const btnSec = { padding: '9px 20px', background: 'none', border: '1px solid #2a2a38', borderRadius: 10, color: '#9998a8', fontSize: '0.88rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }
 const overlay = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }
-const modal = { background: '#1a1a1f', border: '1px solid #2a2a32', borderRadius: 16, padding: '28px', width: 400 }
-const selStyle = { background: '#0f0f11', border: '1px solid #2a2a32', borderRadius: 8, padding: '8px 12px', color: '#f0eff5', fontFamily: 'DM Sans, sans-serif', fontSize: '0.88rem', outline: 'none', cursor: 'pointer' }
+const modal = { background: '#1a1a24', border: '1px solid #2a2a38', borderRadius: 16, padding: '28px', width: 400 }
+const selStyle = { background: '#0f0f15', border: '1px solid #2a2a38', borderRadius: 8, padding: '8px 12px', color: '#f0eff5', fontFamily: 'DM Sans, sans-serif', fontSize: '0.88rem', outline: 'none', cursor: 'pointer' }
