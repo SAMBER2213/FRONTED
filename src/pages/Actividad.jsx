@@ -59,6 +59,23 @@ function formatHora12(hora24) {
   return `${String(h12).padStart(2, '0')}:${m} ${ampm}`
 }
 
+function DateInput({ value, onChange, style }) {
+  return (
+    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+      <input type="date" value={value} onChange={onChange}
+        style={{ ...style, paddingRight: 38, colorScheme: 'dark', width: '100%' }} />
+      <span style={{ position: 'absolute', right: 10, pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </span>
+    </div>
+  )
+}
+
 export default function Actividad() {
   const navigate = useNavigate()
   const { id } = useParams()
@@ -241,7 +258,7 @@ export default function Actividad() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
               <div>
                 <label style={lbl}>Fecha (opcional)</label>
-                <input type="date" value={nuevaSub.fecha} onChange={e => setNuevaSub({ ...nuevaSub, fecha: e.target.value })} style={inp} />
+                <DateInput value={nuevaSub.fecha} onChange={e => setNuevaSub({ ...nuevaSub, fecha: e.target.value })} style={inp} />
               </div>
               <div>
                 <label style={lbl}>Horas de estudio</label>
@@ -271,7 +288,7 @@ export default function Actividad() {
               <h3 style={{ marginBottom: 4, fontSize: '1.1rem' }}>Reprogramar subtarea</h3>
               <p style={{ fontSize: '0.82rem', color: '#9998a8', marginBottom: 20 }}>{reprogramando.nombre}</p>
               <label style={lbl}>Nueva fecha</label>
-              <input type="date" value={nuevaFecha} onChange={e => setNuevaFecha(e.target.value)} style={{ ...inp, marginBottom: 14 }} />
+              <DateInput value={nuevaFecha} onChange={e => setNuevaFecha(e.target.value)} style={{ ...inp, marginBottom: 14 }} />
               {nuevaFecha && (
                 <>
                   <label style={lbl}>Hora (opcional)</label>

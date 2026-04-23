@@ -40,8 +40,14 @@ export default function Hoy() {
 
   function grupo(sub) {
     if (!sub.fecha) return 'proximas'
+    const ahora = new Date()
+    const horaActual = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`
     if (sub.fecha < hoy) return 'vencidas'
-    if (sub.fecha === hoy) return 'hoy'
+    if (sub.fecha === hoy) {
+      // Si tiene hora asignada y esa hora ya pasó → vencida
+      if (sub.hora && sub.hora < horaActual) return 'vencidas'
+      return 'hoy'
+    }
     return 'proximas'
   }
 

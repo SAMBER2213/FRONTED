@@ -62,6 +62,23 @@ function formatHora12(hora24) {
   return `${String(h12).padStart(2, '0')}:${m} ${ampm}`
 }
 
+function DateInput({ value, onChange, style }) {
+  return (
+    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+      <input type="date" value={value} onChange={onChange}
+        style={{ ...style, paddingRight: 38, colorScheme: 'dark', width: '100%' }} />
+      <span style={{ position: 'absolute', right: 10, pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </span>
+    </div>
+  )
+}
+
 export default function Crear() {
   const navigate = useNavigate()
   const [form, setForm] = useState({ titulo: '', tipo: '', curso: '', fechaLimite: '', horasEstimadas: '' })
@@ -153,8 +170,8 @@ export default function Crear() {
                 value={form.curso} onChange={e => setForm({ ...form, curso: e.target.value })} />
             </Campo>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <Campo label="📅 Fecha límite">
-                <input type="date" style={inputStyle()} value={form.fechaLimite}
+              <Campo label="Fecha límite">
+                <DateInput style={inputStyle()} value={form.fechaLimite}
                   onChange={e => setForm({ ...form, fechaLimite: e.target.value })} />
               </Campo>
               <Campo label="⏱ Horas estimadas">
@@ -199,7 +216,7 @@ export default function Crear() {
               </Campo>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 4 }}>
                 <Campo label="Fecha">
-                  <input type="date" style={inputStyle()} value={nuevaSub.fecha}
+                  <DateInput style={inputStyle()} value={nuevaSub.fecha}
                     onChange={e => setNuevaSub({ ...nuevaSub, fecha: e.target.value })} />
                 </Campo>
                 <Campo label="Horas de estudio" error={errores.horas}>
