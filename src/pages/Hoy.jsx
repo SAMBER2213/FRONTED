@@ -45,9 +45,22 @@ export default function Hoy() {
     return 'proximas'
   }
 
-  const vencidas = subtareas.filter(s => grupo(s) === 'vencidas').sort((a, b) => a.fecha > b.fecha ? 1 : -1)
-  const paraHoy = subtareas.filter(s => grupo(s) === 'hoy').sort((a, b) => a.horas - b.horas)
-  const proximas = subtareas.filter(s => grupo(s) === 'proximas').sort((a, b) => a.fecha > b.fecha ? 1 : -1)
+  const vencidas = subtareas.filter(s => grupo(s) === 'vencidas').sort((a, b) => {
+    if (a.fecha !== b.fecha) return a.fecha > b.fecha ? 1 : -1
+    if (a.hora && b.hora) return a.hora > b.hora ? 1 : -1
+    return 0
+  })
+  const paraHoy = subtareas.filter(s => grupo(s) === 'hoy').sort((a, b) => {
+    if (a.hora && b.hora) return a.hora > b.hora ? 1 : -1
+    if (a.hora) return -1
+    if (b.hora) return 1
+    return a.horas - b.horas
+  })
+  const proximas = subtareas.filter(s => grupo(s) === 'proximas').sort((a, b) => {
+    if (a.fecha !== b.fecha) return a.fecha > b.fecha ? 1 : -1
+    if (a.hora && b.hora) return a.hora > b.hora ? 1 : -1
+    return 0
+  })
   const totalSubtareas = subtareas.length
 
   return (
@@ -165,6 +178,15 @@ function Columna({ titulo, color, bgColor, borderColor, items, chip, navigate, v
   )
 }
 
+function formatHora12(hora24) {
+  if (!hora24) return ''
+  const [h, m] = hora24.split(':')
+  const n = parseInt(h)
+  const ampm = n >= 12 ? 'PM' : 'AM'
+  const h12 = n > 12 ? n - 12 : n === 0 ? 12 : n
+  return `${String(h12).padStart(2, '0')}:${m} ${ampm}`
+}
+
 function TarjetaKanban({ sub, color, chip, navigate }) {
   return (
     <div
@@ -185,7 +207,10 @@ function TarjetaKanban({ sub, color, chip, navigate }) {
       <p style={{ fontSize: '0.74rem', color: '#8b8a9a', marginBottom: 8 }}>{sub.actividadTitulo} · {sub.actividadCurso}</p>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', background: `${color}22`, color, padding: '2px 8px', borderRadius: 20 }}>{chip}</span>
-        {sub.horas && <span style={{ fontSize: '0.74rem', color: '#8b8a9a', fontWeight: 600 }}>{sub.horas}h</span>}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {sub.hora && <span style={{ fontSize: '0.72rem', color, fontWeight: 700 }}>{formatHora12(sub.hora)}</span>}
+          {sub.horas && <span style={{ fontSize: '0.74rem', color: '#8b8a9a', fontWeight: 600 }}>{sub.horas}h</span>}
+        </div>
       </div>
     </div>
   )

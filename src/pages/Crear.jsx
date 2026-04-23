@@ -5,11 +5,68 @@ import { Sidebar, getHeaders } from './Sidebar'
 
 const BASE_URL = 'https://backend-planificador-3sre.onrender.com'
 
+function HoraPicker({ value, onChange }) {
+  const parse = (v) => {
+    if (!v) return { h: '08', m: '00', ampm: 'AM' }
+    const [h, m] = v.split(':')
+    const n = parseInt(h)
+    return { h: String(n > 12 ? n - 12 : n === 0 ? 12 : n).padStart(2, '0'), m, ampm: n >= 12 ? 'PM' : 'AM' }
+  }
+  const [hora, setHora] = useState(() => parse(value))
+
+  function emitir(next) {
+    let h24 = parseInt(next.h)
+    if (next.ampm === 'AM') { if (h24 === 12) h24 = 0 }
+    else { if (h24 !== 12) h24 += 12 }
+    onChange(`${String(h24).padStart(2, '0')}:${next.m}`)
+  }
+
+  function update(field, val) {
+    const next = { ...hora, [field]: val }
+    setHora(next)
+    emitir(next)
+  }
+
+  const horas = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))
+  const minutos = ['00', '15', '30', '45']
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <select value={hora.h} onChange={e => update('h', e.target.value)} style={selStyle}>
+        {horas.map(h => <option key={h}>{h}</option>)}
+      </select>
+      <span style={{ color: '#9998a8', fontWeight: 700 }}>:</span>
+      <select value={hora.m} onChange={e => update('m', e.target.value)} style={selStyle}>
+        {minutos.map(m => <option key={m}>{m}</option>)}
+      </select>
+      <div style={{ display: 'flex', background: '#0f0f15', border: '1px solid #2a2a38', borderRadius: 8, overflow: 'hidden' }}>
+        {['AM', 'PM'].map(p => (
+          <button key={p} onClick={() => update('ampm', p)} type="button"
+            style={{ padding: '8px 12px', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '0.82rem', fontWeight: 700, background: hora.ampm === p ? '#a78bfa' : 'transparent', color: hora.ampm === p ? 'white' : '#6b6a7a', transition: 'all 0.15s' }}>
+            {p}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+const selStyle = { background: '#0f0f15', border: '1px solid #2a2a38', borderRadius: 8, padding: '8px 12px', color: '#f0eff5', fontFamily: 'DM Sans, sans-serif', fontSize: '0.88rem', outline: 'none', cursor: 'pointer' }
+
+function formatHora12(hora24) {
+  if (!hora24) return ''
+  const [h, m] = hora24.split(':')
+  const n = parseInt(h)
+  const ampm = n >= 12 ? 'PM' : 'AM'
+  const h12 = n > 12 ? n - 12 : n === 0 ? 12 : n
+  return `${String(h12).padStart(2, '0')}:${m} ${ampm}`
+}
+
 export default function Crear() {
   const navigate = useNavigate()
   const [form, setForm] = useState({ titulo: '', tipo: '', curso: '', fechaLimite: '', horasEstimadas: '' })
   const [subtareas, setSubtareas] = useState([])
-  const [nuevaSub, setNuevaSub] = useState({ nombre: '', fecha: '', horas: '' })
+  const [nuevaSub, setNuevaSub] = useState({ nombre: '', fecha: '', hora: '', horas: '' })
   const [errores, setErrores] = useState({})
   const [exito, setExito] = useState(false)
   const [cargando, setCargando] = useState(false)
@@ -40,7 +97,7 @@ export default function Crear() {
       for (const sub of subtareas) {
         await fetch(`${BASE_URL}/api/actividades/${data.id}/subtareas/`, {
           method: 'POST', headers: getHeaders(),
-          body: JSON.stringify({ nombre: sub.nombre, fecha: sub.fecha, horas: Number(sub.horas) })
+          body: JSON.stringify({ nombre: sub.nombre, fecha: sub.fecha, hora: sub.hora || '', horas: Number(sub.horas) })
         })
       }
       setExito(true)
@@ -55,7 +112,7 @@ export default function Crear() {
     if (!nuevaSub.horas || Number(nuevaSub.horas) <= 0) e.horas = 'Las horas deben ser mayor a 0'
     if (Object.keys(e).length > 0) { setErrores(e); return }
     setSubtareas([...subtareas, { ...nuevaSub, id: Date.now() }])
-    setNuevaSub({ nombre: '', fecha: '', horas: '' })
+    setNuevaSub({ nombre: '', fecha: '', hora: '', horas: '' })
     setErrores({})
   }
 
@@ -123,7 +180,7 @@ export default function Crear() {
                 <div style={{ flex: 1 }}>
                   <p style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f0eff5' }}>{s.nombre}</p>
                   <p style={{ fontSize: '0.75rem', color: '#8b8a9a', marginTop: 2 }}>
-                    {s.fecha ? `📅 ${s.fecha}` : 'Sin fecha'} · ⏱ {s.horas}h
+                    {s.fecha ? `📅 ${s.fecha}` : 'Sin fecha'}{s.hora ? ` · ${formatHora12(s.hora)}` : ''} · ⏱ {s.horas}h
                   </p>
                 </div>
                 <button onClick={() => setSubtareas(subtareas.filter((_, j) => j !== i))}
@@ -141,15 +198,20 @@ export default function Crear() {
                   value={nuevaSub.nombre} onChange={e => setNuevaSub({ ...nuevaSub, nombre: e.target.value })} />
               </Campo>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 4 }}>
-                <Campo label="📅 Fecha">
+                <Campo label="Fecha">
                   <input type="date" style={inputStyle()} value={nuevaSub.fecha}
                     onChange={e => setNuevaSub({ ...nuevaSub, fecha: e.target.value })} />
                 </Campo>
-                <Campo label="⏱ Horas de estudio" error={errores.horas}>
+                <Campo label="Horas de estudio" error={errores.horas}>
                   <input type="number" style={inputStyle(errores.horas)} placeholder="Ej: 2" min="0"
                     value={nuevaSub.horas} onChange={e => setNuevaSub({ ...nuevaSub, horas: e.target.value })} />
                 </Campo>
               </div>
+              {nuevaSub.fecha && (
+                <Campo label="Hora (opcional)">
+                  <HoraPicker value={nuevaSub.hora} onChange={v => setNuevaSub({ ...nuevaSub, hora: v })} />
+                </Campo>
+              )}
               <button onClick={agregarSubtarea} style={btnAgregar}>
                 ＋ Agregar subtarea
               </button>

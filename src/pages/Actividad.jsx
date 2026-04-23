@@ -72,6 +72,9 @@ export default function Actividad() {
   const [conflicto, setConflicto] = useState(null)
   const [avance, setAvance] = useState(null)
   const [nota, setNota] = useState('')
+  const [agregando, setAgregando] = useState(false)
+  const [nuevaSub, setNuevaSub] = useState({ nombre: '', fecha: '', hora: '', horas: '' })
+  const [erroresSub, setErroresSub] = useState({})
   const LIMITE_HORAS = 6
 
   useEffect(() => { cargar() }, [id])
@@ -87,6 +90,23 @@ export default function Actividad() {
       setActividad(data)
     } catch { setError('Error al cargar la actividad.') }
     setCargando(false)
+  }
+
+  async function agregarSubtarea() {
+    const e = {}
+    if (!nuevaSub.nombre.trim()) e.nombre = 'El nombre es obligatorio'
+    if (!nuevaSub.horas || Number(nuevaSub.horas) <= 0) e.horas = 'Ingresa las horas'
+    if (Object.keys(e).length > 0) { setErroresSub(e); return }
+    try {
+      await fetch(`${BASE_URL}/api/actividades/${id}/subtareas/`, {
+        method: 'POST', headers: getHeaders(),
+        body: JSON.stringify({ nombre: nuevaSub.nombre, fecha: nuevaSub.fecha, hora: nuevaSub.hora || '', horas: Number(nuevaSub.horas) })
+      })
+      setNuevaSub({ nombre: '', fecha: '', hora: '', horas: '' })
+      setErroresSub({})
+      setAgregando(false)
+      await cargar()
+    } catch { alert('Error al agregar subtarea.') }
   }
 
   function abrirReprogramar(sub) {
@@ -203,6 +223,46 @@ export default function Actividad() {
             )}
           </div>
         ))}
+
+        {/* Agregar subtarea */}
+        {!agregando ? (
+          <button onClick={() => setAgregando(true)} style={{ marginTop: 8, width: '100%', padding: '10px', background: 'rgba(167,139,250,0.08)', border: '1px dashed rgba(167,139,250,0.4)', borderRadius: 10, color: '#a78bfa', fontSize: '0.88rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+            + Agregar subtarea
+          </button>
+        ) : (
+          <div style={{ background: '#1a1a24', border: '1px solid rgba(167,139,250,0.3)', borderRadius: 12, padding: '18px', marginTop: 8 }}>
+            <p style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#a78bfa', marginBottom: 14 }}>Nueva subtarea</p>
+            <div style={{ marginBottom: 12 }}>
+              <input placeholder="Nombre de la subtarea" value={nuevaSub.nombre}
+                onChange={e => setNuevaSub({ ...nuevaSub, nombre: e.target.value })}
+                style={{ ...inp, borderColor: erroresSub.nombre ? '#f04a4a' : '#2a2a38' }} />
+              {erroresSub.nombre && <p style={{ fontSize: '0.75rem', color: '#f07070', marginTop: 3 }}>{erroresSub.nombre}</p>}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+              <div>
+                <label style={lbl}>Fecha (opcional)</label>
+                <input type="date" value={nuevaSub.fecha} onChange={e => setNuevaSub({ ...nuevaSub, fecha: e.target.value })} style={inp} />
+              </div>
+              <div>
+                <label style={lbl}>Horas de estudio</label>
+                <input type="number" value={nuevaSub.horas} onChange={e => setNuevaSub({ ...nuevaSub, horas: e.target.value })}
+                  placeholder="Ej: 2" min="0"
+                  style={{ ...inp, borderColor: erroresSub.horas ? '#f04a4a' : '#2a2a38' }} />
+                {erroresSub.horas && <p style={{ fontSize: '0.75rem', color: '#f07070', marginTop: 3 }}>{erroresSub.horas}</p>}
+              </div>
+            </div>
+            {nuevaSub.fecha && (
+              <div style={{ marginBottom: 14 }}>
+                <label style={lbl}>Hora (opcional)</label>
+                <HoraPicker value={nuevaSub.hora} onChange={v => setNuevaSub({ ...nuevaSub, hora: v })} />
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => { setAgregando(false); setNuevaSub({ nombre: '', fecha: '', hora: '', horas: '' }); setErroresSub({}) }} style={btnSec}>Cancelar</button>
+              <button onClick={agregarSubtarea} style={btnPri}>Agregar</button>
+            </div>
+          </div>
+        )}
 
         {/* Modal Reprogramar */}
         {reprogramando && !conflicto && (
