@@ -65,8 +65,17 @@ function formatHora12(hora24) {
 function DateInput({ value, onChange, style }) {
   return (
     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-      <input type="date" value={value} onChange={onChange}
-        style={{ ...style, paddingRight: 38, colorScheme: 'dark', width: '100%' }} />
+      <style>{`
+        .date-custom::-webkit-calendar-picker-indicator { opacity: 0; width: 28px; cursor: pointer; position: absolute; right: 0; }
+        .date-custom::-webkit-inner-spin-button { display: none; }
+      `}</style>
+      <input
+        type="date"
+        value={value}
+        onChange={onChange}
+        className="date-custom"
+        style={{ ...style, paddingRight: 38, colorScheme: 'dark', width: '100%' }}
+      />
       <span style={{ position: 'absolute', right: 10, pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
