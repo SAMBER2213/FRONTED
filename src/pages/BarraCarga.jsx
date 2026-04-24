@@ -159,13 +159,13 @@ export function ModalConflicto({ conflicto, nuevasHoras, onElgirFecha, onAjustar
         <p style={{ fontSize: '0.82rem', color: '#9998a8', marginBottom: 16 }}>¿Qué quieres hacer?</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <button onClick={onElgirFecha} style={btnOpcion('#a78bfa', 'rgba(167,139,250,0.12)', 'rgba(167,139,250,0.4)')}>
-            📅 Mover a otro día — elegir una fecha con menos carga
+            📅 Mover a otro día
           </button>
           <button onClick={onAjustarHoras} style={btnOpcion('#60a5fa', 'rgba(96,165,250,0.1)', 'rgba(96,165,250,0.3)')}>
-            ✏️ Reducir las horas — ajustar el tiempo estimado
+            ✏️ Reducir las horas
           </button>
           <button onClick={onGuardarIgual} style={btnOpcion('#f07070', 'rgba(240,74,74,0.08)', 'rgba(240,74,74,0.3)')}>
-            🚀 Guardar igual — acepto superar el límite ese día
+            🚀 Guardar igual
           </button>
         </div>
       </div>

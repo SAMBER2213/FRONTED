@@ -12,8 +12,15 @@ export default function Actividades() {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
   const [eliminando, setEliminando] = useState(null)
+  const [cargaHoy, setCargaHoy] = useState(null)
 
-  useEffect(() => { cargar() }, [])
+  useEffect(() => {
+    cargar()
+    fetch(`${BASE_URL}/api/hoy/`, { headers: getHeaders() })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setCargaHoy(d.carga_hoy_horas) })
+      .catch(() => {})
+  }, [])
 
   async function cargar() {
     setCargando(true)
@@ -55,9 +62,9 @@ export default function Actividades() {
           <p style={subtituloPagina}>Todas tus actividades evaluativas</p>
         </div>
 
-        {/* Barra de carga diaria */}
+        {/* Barra de carga diaria — misma que en la vista Hoy */}
         <div style={{ width: '100%', maxWidth: 720 }}>
-          <BarraCarga />
+          <BarraCarga horasDelDia={cargaHoy} />
         </div>
 
         {/* Estado: cargando */}

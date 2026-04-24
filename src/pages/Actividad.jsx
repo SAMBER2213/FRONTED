@@ -103,9 +103,15 @@ export default function Actividad() {
   const [agregando, setAgregando] = useState(false)
   const [nuevaSub, setNuevaSub] = useState({ nombre: '', fecha: '', hora: '', horas: '' })
   const [erroresSub, setErroresSub] = useState({})
-  const LIMITE_HORAS = 6
+  const [cargaHoy, setCargaHoy] = useState(null)
 
-  useEffect(() => { cargar() }, [id])
+  useEffect(() => {
+    cargar()
+    fetch(`${BASE_URL}/api/hoy/`, { headers: getHeaders() })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setCargaHoy(d.carga_hoy_horas) })
+      .catch(() => {})
+  }, [id])
 
   async function cargar() {
     setCargando(true)
@@ -259,8 +265,8 @@ export default function Actividad() {
           />
         )}
 
-        {/* Barra de carga diaria */}
-        <BarraCarga />
+        {/* Barra de carga diaria — misma que en la vista Hoy */}
+        <BarraCarga horasDelDia={cargaHoy} />
 
         <p style={labelSeccion}>Subtareas del plan</p>
 
