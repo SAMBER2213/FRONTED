@@ -51,7 +51,7 @@ export default function Hoy() {
           <div style={{ textAlign: 'center', padding: '64px', color: '#8b8a9a', fontSize: '0.95rem' }}>
             Cargando tareas...
           </div>
-        )}
+        
 
         {error && (
           <div style={{ maxWidth: 480, margin: '0 auto', background: 'rgba(240,74,74,0.08)', border: '1px solid #f04a4a', borderRadius: 14, padding: '24px', textAlign: 'center' }}>
