@@ -57,7 +57,7 @@ export default function Actividades() {
 
         {/* Barra de carga diaria */}
         <div style={{ width: '100%', maxWidth: 720 }}>
-          <BarraCarga fecha={new Date().toISOString().slice(0, 10)} />
+          <BarraCarga />
         </div>
 
         {/* Estado: cargando */}

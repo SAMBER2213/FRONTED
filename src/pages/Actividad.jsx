@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Sidebar, getHeaders } from './Sidebar'
-import { verificarConflicto } from './BarraCarga'
+import { BarraCarga, ModalConflicto, verificarConflicto } from './BarraCarga'
 
 const BASE_URL = 'https://backend-planificador-3sre.onrender.com'
 
@@ -97,6 +97,7 @@ export default function Actividad() {
   const [nuevaHora, setNuevaHora] = useState('')
   const [nuevasHoras, setNuevasHoras] = useState('')
   const [conflicto, setConflicto] = useState(null)
+  const [modoConflicto, setModoConflicto] = useState(null) // 'reprogramar' | 'agregar'
   const [avance, setAvance] = useState(null)
   const [nota, setNota] = useState('')
   const [agregando, setAgregando] = useState(false)
@@ -124,6 +125,25 @@ export default function Actividad() {
     if (!nuevaSub.nombre.trim()) e.nombre = 'El nombre es obligatorio'
     if (!nuevaSub.horas || Number(nuevaSub.horas) <= 0) e.horas = 'Ingresa las horas'
     if (Object.keys(e).length > 0) { setErroresSub(e); return }
+
+    // Verificar conflicto si tiene fecha de hoy
+    if (nuevaSub.fecha) {
+      const resultado = await verificarConflicto(nuevaSub.fecha, nuevaSub.horas)
+      if (resultado && resultado.hayConflicto) {
+        setConflicto({
+          total: resultado.totalConNueva,
+          limite: resultado.limiteDiario,
+          fecha: nuevaSub.fecha,
+          horasActuales: resultado.horasActuales,
+        })
+        setModoConflicto('agregar')
+        return
+      }
+    }
+    await ejecutarAgregarSubtarea()
+  }
+
+  async function ejecutarAgregarSubtarea() {
     try {
       await fetch(`${BASE_URL}/api/actividades/${id}/subtareas/`, {
         method: 'POST', headers: getHeaders(),
@@ -132,6 +152,8 @@ export default function Actividad() {
       setNuevaSub({ nombre: '', fecha: '', hora: '', horas: '' })
       setErroresSub({})
       setAgregando(false)
+      setConflicto(null)
+      setModoConflicto(null)
       await cargar()
     } catch { alert('Error al agregar subtarea.') }
   }
@@ -146,7 +168,6 @@ export default function Actividad() {
 
   async function confirmarReprogramacion() {
     if (!nuevaFecha || !nuevasHoras) return
-    // Verificar conflicto contra el backend (usa el límite real del usuario)
     const resultado = await verificarConflicto(nuevaFecha, nuevasHoras, reprogramando.id)
     if (resultado && resultado.hayConflicto) {
       setConflicto({
@@ -154,8 +175,8 @@ export default function Actividad() {
         limite: resultado.limiteDiario,
         fecha: nuevaFecha,
         horasActuales: resultado.horasActuales,
-        subtareasExistentes: resultado.subtareasExistentes,
       })
+      setModoConflicto('reprogramar')
       return
     }
     await aplicarReprogramacion()
@@ -224,33 +245,22 @@ export default function Actividad() {
         </div>
 
         {conflicto && (
-          <div style={{ background: 'rgba(240,74,74,0.08)', border: '1px solid rgba(240,74,74,0.5)', borderRadius: 14, padding: '20px', marginBottom: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-              <span style={{ fontSize: '1.1rem' }}>⚠️</span>
-              <p style={{ color: '#f04a4a', fontWeight: 800, fontSize: '0.95rem' }}>Ese día quedaría sobrecargado</p>
-            </div>
-            <p style={{ fontSize: '0.88rem', color: '#f0eff5', marginBottom: 6 }}>
-              Si guardas esta tarea el <strong>{formatearFecha(conflicto.fecha)}</strong>, tendrías <strong style={{ color: '#f04a4a' }}>{conflicto.total}h planificadas</strong>, pero tu límite es <strong>{conflicto.limite}h</strong>.
-            </p>
-            <p style={{ fontSize: '0.82rem', color: '#9998a8', marginBottom: 18 }}>
-              Ya tienes {conflicto.horasActuales}h en ese día. Esta tarea añadiría {nuevasHoras}h más. ¿Qué quieres hacer?
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <button onClick={() => setConflicto(null)}
-                style={{ ...btnOpcion, background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.4)', color: '#a78bfa' }}>
-                📅 Elegir otra fecha — mover la tarea a un día con menos carga
-              </button>
-              <button onClick={() => { setConflicto(null); /* el usuario puede cambiar horas en el form */ }}
-                style={{ ...btnOpcion, background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.3)', color: '#60a5fa' }}>
-                ✏️ Ajustar las horas — reducir el tiempo estimado de esta tarea
-              </button>
-              <button onClick={aplicarReprogramacion}
-                style={{ ...btnOpcion, background: 'rgba(240,74,74,0.08)', border: '1px solid rgba(240,74,74,0.3)', color: '#f07070' }}>
-                🚀 Guardar igual — acepto superar el límite ese día
-              </button>
-            </div>
-          </div>
+          <ModalConflicto
+            conflicto={conflicto}
+            nuevasHoras={modoConflicto === 'reprogramar' ? nuevasHoras : nuevaSub.horas}
+            onElgirFecha={() => { setConflicto(null); setModoConflicto(null) }}
+            onAjustarHoras={() => { setConflicto(null); setModoConflicto(null) }}
+            onGuardarIgual={() => {
+              setConflicto(null)
+              setModoConflicto(null)
+              if (modoConflicto === 'reprogramar') aplicarReprogramacion()
+              else ejecutarAgregarSubtarea()
+            }}
+          />
         )}
+
+        {/* Barra de carga diaria */}
+        <BarraCarga />
 
         <p style={labelSeccion}>Subtareas del plan</p>
 
@@ -377,7 +387,6 @@ const lbl = { display: 'block', fontSize: '0.82rem', color: '#9998a8', marginBot
 const inp = { width: '100%', background: '#0f0f15', border: '1px solid #2a2a38', borderRadius: 10, padding: '10px 14px', color: '#f0eff5', fontFamily: 'DM Sans, sans-serif', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }
 const btnPri = { padding: '9px 20px', background: '#a78bfa', border: 'none', borderRadius: 10, color: 'white', fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }
 const btnSec = { padding: '9px 20px', background: 'none', border: '1px solid #2a2a38', borderRadius: 10, color: '#9998a8', fontSize: '0.88rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }
-const btnOpcion = { width: '100%', padding: '11px 16px', borderRadius: 10, fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', textAlign: 'left' }
 
 function formatearFecha(fecha) {
   if (!fecha) return ''

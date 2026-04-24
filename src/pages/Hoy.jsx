@@ -38,34 +38,37 @@ export default function Hoy() {
     <div style={layoutBase}>
       <Sidebar navigate={navigate} actual="hoy" />
       <main style={mainStyle}>
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <h2 style={tituloPagina}>¿Qué tienes para hoy?</h2>
           <p style={subtituloPagina}>{fechaDisplay}</p>
         </div>
 
-        {!cargando && !error && (
-          <div style={{ width: '100%', maxWidth: 960 }}>
-            <BarraCarga fecha={data?.fecha} horasDelDia={data?.carga_hoy_horas ?? 0} />
-          </div>
-        )}
-          <div style={{ textAlign: 'center', padding: '64px', color: '#8b8a9a', fontSize: '0.95rem' }}>
+        {/* Barra de carga — siempre visible, se auto-carga */}
+        <div style={{ width: '100%', maxWidth: 960 }}>
+          <BarraCarga horasDelDia={data?.carga_hoy_horas} />
+        </div>
+
+        {cargando && (
+          <div style={{ textAlign: 'center', padding: '48px', color: '#8b8a9a', fontSize: '0.95rem' }}>
             Cargando tareas...
           </div>
-        
+        )}
 
-        {error && (
+        {!cargando && error && (
           <div style={{ maxWidth: 480, margin: '0 auto', background: 'rgba(240,74,74,0.08)', border: '1px solid #f04a4a', borderRadius: 14, padding: '24px', textAlign: 'center' }}>
             <p style={{ color: '#f07070', marginBottom: 14, fontSize: '0.95rem', fontWeight: 600 }}>⚠️ {error}</p>
-            <button onClick={cargar} style={btnSecundario('#f04a4a')}>Reintentar</button>
+            <button onClick={cargar} style={{ padding: '9px 22px', background: 'none', border: '1px solid #f04a4a', borderRadius: 8, color: '#f04a4a', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '0.88rem', fontWeight: 600 }}>Reintentar</button>
           </div>
         )}
 
         {!cargando && !error && total === 0 && (
-          <div style={{ textAlign: 'center', padding: '64px 24px' }}>
+          <div style={{ textAlign: 'center', padding: '48px 24px' }}>
             <div style={{ fontSize: '3rem', marginBottom: 16 }}>🎉</div>
-            <p style={{ fontSize: '1.15rem', fontWeight: 700, color: '#f0eff5', marginBottom: 8 }}>No tienes tareas pendientes</p>
-            <p style={{ fontSize: '0.88rem', color: '#8b8a9a', marginBottom: 28 }}>¡Todo al día! Crea una actividad para empezar</p>
-            <button onClick={() => navigate('/crear')} style={btnPrimario}>✏️ Crear actividad</button>
+            <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f0eff5', marginBottom: 8 }}>No tienes tareas pendientes</p>
+            <p style={{ fontSize: '0.88rem', color: '#8b8a9a', marginBottom: 28 }}>¡Todo al día! Crea una actividad para empezar.</p>
+            <button onClick={() => navigate('/crear')} style={{ padding: '12px 28px', background: '#a78bfa', border: 'none', borderRadius: 12, color: 'white', fontSize: '0.95rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+              ✏️ Crear actividad
+            </button>
           </div>
         )}
 
@@ -82,9 +85,8 @@ export default function Hoy() {
 }
 
 function Columna({ titulo, color, bgColor, borderColor, items, chip, navigate, vacioMsg }) {
-  const dot = { vencidas: '🔴', hoy: '🟡', proximas: '🔵' }
   return (
-    <div style={{ background: bgColor, border: `1px solid ${borderColor}`, borderRadius: 16, padding: '18px 14px', display: 'flex', flexDirection: 'column', minHeight: 320 }}>
+    <div style={{ background: bgColor, border: `1px solid ${borderColor}`, borderRadius: 16, padding: '18px 14px', display: 'flex', flexDirection: 'column', minHeight: 300 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <p style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color }}>{titulo}</p>
         <span style={{ fontSize: '0.72rem', fontWeight: 700, background: `${color}22`, color, padding: '2px 9px', borderRadius: 20 }}>{items.length}</span>
@@ -115,7 +117,7 @@ function TarjetaKanban({ sub, color, chip, navigate }) {
   return (
     <div
       onClick={() => navigate(`/actividad/${sub.actividadId}`)}
-      style={{ background: '#1a1a24', border: '1px solid #2a2a38', borderLeft: `3px solid ${color}`, borderRadius: 10, padding: '12px 14px', cursor: 'pointer', transition: 'all 0.15s' }}
+      style={{ background: '#1a1a24', border: '1px solid #2a2a38', borderLeft: `3px solid ${color}`, borderRadius: 10, padding: '12px 14px', cursor: 'pointer', transition: 'background 0.15s' }}
       onMouseEnter={e => e.currentTarget.style.background = '#21212e'}
       onMouseLeave={e => e.currentTarget.style.background = '#1a1a24'}
     >
@@ -137,5 +139,3 @@ const mainStyle = { marginLeft: '220px', flex: 1, padding: '40px 32px', display:
 const kanbanGrid = { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18, width: '100%', maxWidth: 960 }
 const tituloPagina = { fontSize: '1.6rem', fontWeight: 800, color: '#f0eff5', marginBottom: 6, letterSpacing: '-0.02em' }
 const subtituloPagina = { fontSize: '0.88rem', color: '#8b8a9a', textTransform: 'capitalize' }
-const btnPrimario = { padding: '12px 28px', background: '#a78bfa', border: 'none', borderRadius: 12, color: 'white', fontSize: '0.95rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }
-const btnSecundario = (color) => ({ padding: '9px 22px', background: 'none', border: `1px solid ${color}`, borderRadius: 8, color, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '0.88rem', fontWeight: 600 })
