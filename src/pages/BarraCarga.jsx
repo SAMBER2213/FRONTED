@@ -140,34 +140,60 @@ export function BarraCarga({ horasDelDia }) {
 
 // ─── Modal de conflicto flotante (se usa desde Actividad.jsx) ────────────────
 export function ModalConflicto({ conflicto, nuevasHoras, onElgirFecha, onAjustarHoras, onGuardarIgual }) {
+  const [feedback, setFeedback] = useState(null)
+
   if (!conflicto) return null
+
+  function accion(tipo) {
+    const msgs = {
+      fecha: '📅 Abriendo el formulario para elegir otra fecha...',
+      horas: '✏️ Puedes cambiar las horas en el formulario.',
+      igual: '✓ Guardado. El límite se supera ese día.',
+    }
+    setFeedback(msgs[tipo])
+    setTimeout(() => {
+      setFeedback(null)
+      if (tipo === 'fecha') onElgirFecha()
+      else if (tipo === 'horas') onAjustarHoras()
+      else onGuardarIgual()
+    }, 900)
+  }
+
   return (
     <div style={overlayStyle}>
       <div style={{ ...modalStyle, borderColor: 'rgba(240,74,74,0.5)', maxWidth: 420 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-          <span style={{ fontSize: '1.4rem' }}>⚠️</span>
-          <p style={{ fontSize: '1rem', fontWeight: 800, color: '#f04a4a' }}>Ese día quedaría sobrecargado</p>
-        </div>
-        <div style={{ background: 'rgba(240,74,74,0.08)', border: '1px solid rgba(240,74,74,0.2)', borderRadius: 10, padding: '12px 14px', marginBottom: 16 }}>
-          <p style={{ fontSize: '0.9rem', color: '#f0eff5', fontWeight: 600, marginBottom: 4 }}>
-            Quedarías con <span style={{ color: '#f04a4a' }}>{conflicto.total}h planificadas</span> (límite {conflicto.limite}h)
-          </p>
-          <p style={{ fontSize: '0.8rem', color: '#9998a8' }}>
-            Ya tienes {conflicto.horasActuales}h en ese día · Esta tarea suma {nuevasHoras}h más
-          </p>
-        </div>
-        <p style={{ fontSize: '0.82rem', color: '#9998a8', marginBottom: 16 }}>¿Qué quieres hacer?</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <button onClick={onElgirFecha} style={btnOpcion('#a78bfa', 'rgba(167,139,250,0.12)', 'rgba(167,139,250,0.4)')}>
-            📅 Mover a otro día
-          </button>
-          <button onClick={onAjustarHoras} style={btnOpcion('#60a5fa', 'rgba(96,165,250,0.1)', 'rgba(96,165,250,0.3)')}>
-            ✏️ Reducir las horas
-          </button>
-          <button onClick={onGuardarIgual} style={btnOpcion('#f07070', 'rgba(240,74,74,0.08)', 'rgba(240,74,74,0.3)')}>
-            🚀 Guardar igual
-          </button>
-        </div>
+        {feedback ? (
+          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <p style={{ fontSize: '0.95rem', color: '#f0eff5', fontWeight: 600, lineHeight: 1.5 }}>{feedback}</p>
+          </div>
+        ) : (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+              <span style={{ fontSize: '1.4rem' }}>⚠️</span>
+              <p style={{ fontSize: '1rem', fontWeight: 800, color: '#f04a4a' }}>Ese día quedaría sobrecargado</p>
+            </div>
+            <div style={{ background: 'rgba(240,74,74,0.08)', border: '1px solid rgba(240,74,74,0.2)', borderRadius: 10, padding: '12px 14px', marginBottom: 16 }}>
+              <p style={{ fontSize: '0.9rem', color: '#f0eff5', fontWeight: 600, marginBottom: 4 }}>
+                Quedarías con <span style={{ color: '#f04a4a' }}>{conflicto.total}h planificadas</span> (límite {conflicto.limite}h)
+              </p>
+              <p style={{ fontSize: '0.8rem', color: '#9998a8' }}>
+                Ya tienes {conflicto.horasActuales}h en ese día · Esta tarea suma {nuevasHoras}h más
+              </p>
+            </div>
+            <p style={{ fontSize: '0.82rem', color: '#9998a8', marginBottom: 16 }}>¿Qué quieres hacer?</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button onClick={() => accion('fecha')} style={btnOpcion('#a78bfa', 'rgba(167,139,250,0.12)', 'rgba(167,139,250,0.4)')}>
+                📅 Mover a otro día
+              </button>
+              <button onClick={() => accion('horas')} style={btnOpcion('#60a5fa', 'rgba(96,165,250,0.1)', 'rgba(96,165,250,0.3)')}>
+                ✏️ Reducir las horas
+              </button>
+              <button onClick={() => accion('igual')} style={btnOpcion('#f07070', 'rgba(240,74,74,0.08)', 'rgba(240,74,74,0.3)')}>
+                🚀 Guardar igual
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
