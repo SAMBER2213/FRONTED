@@ -200,7 +200,7 @@ const lbl = { display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#9
 const inp = { width: '100%', background: '#0f0f15', border: '1px solid #2a2a38', borderRadius: 10, padding: '11px 14px', color: '#f0eff5', fontFamily: 'DM Sans, sans-serif', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }
 const btnPri = { flex: 1, padding: '10px', background: '#a78bfa', border: 'none', borderRadius: 10, color: 'white', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '0.88rem', fontWeight: 700 }
 const btnSec = { flex: 1, padding: '10px', background: 'none', border: '1px solid #2a2a38', borderRadius: 10, color: '#9998a8', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '0.88rem', fontWeight: 600 }
-const btnOpcion = (color, bg, border) => ({ width: '100%', padding: '12px 16px', background: bg, border: `1px solid ${border}`, borderRadius: 10, color, fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', textAlign: 'left', transition: 'opacity 0.15s' })
+const btnOpcion = (color, bg, border) => ({ width: '100%', padding: '12px 16px', background: bg, border: `1px solid ${border}`, borderRadius: 10, color, fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', textAlign: 'center', transition: 'opacity 0.15s' })
 
 function IconEngranaje({ size = 16 }) {
   return (
