@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Sidebar, getHeaders } from './Sidebar'
+import { verificarConflicto } from './BarraCarga'
 
 const BASE_URL = 'https://backend-planificador-3sre.onrender.com'
 
@@ -144,12 +145,19 @@ export default function Actividad() {
   }
 
   async function confirmarReprogramacion() {
-    const subs = actividad.subtareas || []
-    const horasEnFecha = subs
-      .filter(s => s.id !== reprogramando.id && s.fecha === nuevaFecha)
-      .reduce((acc, s) => acc + Number(s.horas), 0)
-    const total = horasEnFecha + Number(nuevasHoras)
-    if (total > LIMITE_HORAS) { setConflicto({ total, limite: LIMITE_HORAS, fecha: nuevaFecha }); return }
+    if (!nuevaFecha || !nuevasHoras) return
+    // Verificar conflicto contra el backend (usa el límite real del usuario)
+    const resultado = await verificarConflicto(nuevaFecha, nuevasHoras, reprogramando.id)
+    if (resultado && resultado.hayConflicto) {
+      setConflicto({
+        total: resultado.totalConNueva,
+        limite: resultado.limiteDiario,
+        fecha: nuevaFecha,
+        horasActuales: resultado.horasActuales,
+        subtareasExistentes: resultado.subtareasExistentes,
+      })
+      return
+    }
     await aplicarReprogramacion()
   }
 
@@ -216,12 +224,30 @@ export default function Actividad() {
         </div>
 
         {conflicto && (
-          <div style={{ background: 'rgba(240,74,74,0.1)', border: '1px solid #f04a4a', borderRadius: 12, padding: '16px 20px', marginBottom: 20 }}>
-            <p style={{ color: '#f04a4a', fontWeight: 700, marginBottom: 6 }}>⚠️ Conflicto de sobrecarga detectado</p>
-            <p style={{ fontSize: '0.85rem', marginBottom: 12 }}>El día <strong>{conflicto.fecha}</strong> quedaría con <strong>{conflicto.total}h</strong>, superando el límite de <strong>{conflicto.limite}h/día</strong>.</p>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={aplicarReprogramacion} style={btnSec}>Reprogramar igual</button>
-              <button onClick={() => setConflicto(null)} style={btnPri}>Elegir otra fecha</button>
+          <div style={{ background: 'rgba(240,74,74,0.08)', border: '1px solid rgba(240,74,74,0.5)', borderRadius: 14, padding: '20px', marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <span style={{ fontSize: '1.1rem' }}>⚠️</span>
+              <p style={{ color: '#f04a4a', fontWeight: 800, fontSize: '0.95rem' }}>Ese día quedaría sobrecargado</p>
+            </div>
+            <p style={{ fontSize: '0.88rem', color: '#f0eff5', marginBottom: 6 }}>
+              Si guardas esta tarea el <strong>{formatearFecha(conflicto.fecha)}</strong>, tendrías <strong style={{ color: '#f04a4a' }}>{conflicto.total}h planificadas</strong>, pero tu límite es <strong>{conflicto.limite}h</strong>.
+            </p>
+            <p style={{ fontSize: '0.82rem', color: '#9998a8', marginBottom: 18 }}>
+              Ya tienes {conflicto.horasActuales}h en ese día. Esta tarea añadiría {nuevasHoras}h más. ¿Qué quieres hacer?
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button onClick={() => setConflicto(null)}
+                style={{ ...btnOpcion, background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.4)', color: '#a78bfa' }}>
+                📅 Elegir otra fecha — mover la tarea a un día con menos carga
+              </button>
+              <button onClick={() => { setConflicto(null); /* el usuario puede cambiar horas en el form */ }}
+                style={{ ...btnOpcion, background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.3)', color: '#60a5fa' }}>
+                ✏️ Ajustar las horas — reducir el tiempo estimado de esta tarea
+              </button>
+              <button onClick={aplicarReprogramacion}
+                style={{ ...btnOpcion, background: 'rgba(240,74,74,0.08)', border: '1px solid rgba(240,74,74,0.3)', color: '#f07070' }}>
+                🚀 Guardar igual — acepto superar el límite ese día
+              </button>
             </div>
           </div>
         )}
@@ -351,6 +377,15 @@ const lbl = { display: 'block', fontSize: '0.82rem', color: '#9998a8', marginBot
 const inp = { width: '100%', background: '#0f0f15', border: '1px solid #2a2a38', borderRadius: 10, padding: '10px 14px', color: '#f0eff5', fontFamily: 'DM Sans, sans-serif', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }
 const btnPri = { padding: '9px 20px', background: '#a78bfa', border: 'none', borderRadius: 10, color: 'white', fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }
 const btnSec = { padding: '9px 20px', background: 'none', border: '1px solid #2a2a38', borderRadius: 10, color: '#9998a8', fontSize: '0.88rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }
+const btnOpcion = { width: '100%', padding: '11px 16px', borderRadius: 10, fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', textAlign: 'left' }
+
+function formatearFecha(fecha) {
+  if (!fecha) return ''
+  const hoy = new Date().toISOString().slice(0, 10)
+  if (fecha === hoy) return 'hoy'
+  const d = new Date(fecha + 'T12:00:00')
+  return d.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })
+}
 const overlay = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }
 const modal = { background: '#1a1a24', border: '1px solid #2a2a38', borderRadius: 16, padding: '28px', width: 400 }
 const selStyle = { background: '#0f0f15', border: '1px solid #2a2a38', borderRadius: 8, padding: '8px 12px', color: '#f0eff5', fontFamily: 'DM Sans, sans-serif', fontSize: '0.88rem', outline: 'none', cursor: 'pointer' }

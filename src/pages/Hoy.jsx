@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Sidebar, getHeaders } from './Sidebar'
+import { BarraCarga } from './BarraCarga'
 
 const BASE_URL = 'https://backend-planificador-3sre.onrender.com'
 
@@ -42,7 +43,11 @@ export default function Hoy() {
           <p style={subtituloPagina}>{fechaDisplay}</p>
         </div>
 
-        {cargando && (
+        {!cargando && !error && (
+          <div style={{ width: '100%', maxWidth: 960 }}>
+            <BarraCarga fecha={data?.fecha} horasDelDia={data?.carga_hoy_horas ?? 0} />
+          </div>
+        )}
           <div style={{ textAlign: 'center', padding: '64px', color: '#8b8a9a', fontSize: '0.95rem' }}>
             Cargando tareas...
           </div>

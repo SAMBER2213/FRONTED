@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Sidebar, getHeaders } from './Sidebar'
+import { BarraCarga } from './BarraCarga'
 
 const BASE_URL = 'https://backend-planificador-3sre.onrender.com'
 
@@ -52,6 +53,11 @@ export default function Actividades() {
             </button>
           </div>
           <p style={subtituloPagina}>Todas tus actividades evaluativas</p>
+        </div>
+
+        {/* Barra de carga diaria */}
+        <div style={{ width: '100%', maxWidth: 720 }}>
+          <BarraCarga fecha={new Date().toISOString().slice(0, 10)} />
         </div>
 
         {/* Estado: cargando */}
