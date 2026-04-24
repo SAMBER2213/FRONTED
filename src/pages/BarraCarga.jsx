@@ -156,7 +156,7 @@ export function ModalConflicto({ conflicto, nuevasHoras, onElgirFecha, onAjustar
       if (tipo === 'fecha') onElgirFecha()
       else if (tipo === 'horas') onAjustarHoras()
       else onGuardarIgual()
-    }, 900)
+    }, 9000)
   }
 
   return (
