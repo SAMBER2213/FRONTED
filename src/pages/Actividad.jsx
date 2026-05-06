@@ -104,6 +104,7 @@ export default function Actividad() {
   const [nuevaSub, setNuevaSub] = useState({ nombre: '', fecha: '', hora: '', horas: '' })
   const [erroresSub, setErroresSub] = useState({})
   const [cargaHoy, setCargaHoy] = useState(null)
+  const [errorReprogramar, setErrorReprogramar] = useState('')
 
   useEffect(() => {
     cargar()
@@ -170,10 +171,13 @@ export default function Actividad() {
     setNuevaHora(sub.hora || '')
     setNuevasHoras(sub.horas || '')
     setConflicto(null)
+    setErrorReprogramar('')
   }
 
   async function confirmarReprogramacion() {
-    if (!nuevaFecha || !nuevasHoras) return
+    if (!nuevasHoras || Number(nuevasHoras) <= 0) { setErrorReprogramar('Las horas son obligatorias'); return }
+    if (!nuevaFecha) { setErrorReprogramar(''); return }
+    setErrorReprogramar('')
     const resultado = await verificarConflicto(nuevaFecha, nuevasHoras, reprogramando.id)
     if (resultado && resultado.hayConflicto) {
       setConflicto({
@@ -351,7 +355,8 @@ export default function Actividad() {
                 </>
               )}
               <label style={lbl}>Horas de estudio</label>
-              <input type="number" value={nuevasHoras} onChange={e => setNuevasHoras(e.target.value)} style={{ ...inp, marginBottom: 20 }} min="0" />
+              <input type="number" value={nuevasHoras} onChange={e => { setNuevasHoras(e.target.value); setErrorReprogramar('') }} style={{ ...inp, borderColor: errorReprogramar ? '#f04a4a' : '#2a2a38', marginBottom: errorReprogramar ? 6 : 20 }} min="0" />
+              {errorReprogramar && <p style={{ fontSize: '0.75rem', color: '#f07070', marginBottom: 14 }}>{errorReprogramar}</p>}
               <div style={{ display: 'flex', gap: 10 }}>
                 <button onClick={() => setReprogramando(null)} style={btnSec}>Cancelar</button>
                 <button onClick={confirmarReprogramacion} style={btnPri}>Confirmar</button>
