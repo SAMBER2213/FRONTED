@@ -286,8 +286,10 @@ export default function Actividad() {
               {sub.estado === 'hecho' ? 'Hecho' : sub.estado === 'pospuesto' ? 'Pospuesto' : 'Pendiente'}
             </span>
             <button onClick={() => abrirReprogramar(sub)} style={{ background: 'none', border: '1px solid #2a2a38', borderRadius: 8, color: '#9998a8', fontSize: '0.78rem', padding: '4px 10px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Reprogramar</button>
-            {sub.estado !== 'hecho' && (
+            {sub.estado === 'pendiente' ? (
               <button onClick={() => { setAvance(sub); setNota('') }} style={{ background: 'none', border: '1px solid rgba(167,139,250,0.5)', borderRadius: 8, color: '#a78bfa', fontSize: '0.78rem', padding: '4px 10px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Registrar</button>
+            ) : (
+              <button onClick={() => registrarAvance(sub, 'pendiente')} style={{ background: 'none', border: '1px solid rgba(107,106,122,0.5)', borderRadius: 8, color: '#9998a8', fontSize: '0.78rem', padding: '4px 10px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>↩ Revertir</button>
             )}
           </div>
         ))}
