@@ -17,6 +17,7 @@ export function BarraCarga({ horasDelDia }) {
   const [errorInput, setErrorInput] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [ok, setOk] = useState(false)
+  const [conflictoLimite, setConflictoLimite] = useState(null)
 
   const hoy = new Date().toISOString().slice(0, 10)
 
@@ -46,9 +47,18 @@ export function BarraCarga({ horasDelDia }) {
       })
       if (res.ok) {
         setLimite(val)
-        setHorasFetch(prev => prev) // reuse fetched value
         setOk(true)
-        setTimeout(() => { setOk(false); setConfigurando(false); setNuevoLimite('') }, 1200)
+        const horasActuales = horasDelDia ?? horasFetch ?? 0
+        if (horasActuales > val) {
+          setTimeout(() => {
+            setOk(false)
+            setConfigurando(false)
+            setNuevoLimite('')
+            setConflictoLimite({ total: horasActuales, limite: val, horasActuales })
+          }, 800)
+        } else {
+          setTimeout(() => { setOk(false); setConfigurando(false); setNuevoLimite('') }, 1200)
+        }
       } else {
         const d = await res.json()
         setErrorInput(d.campos?.limiteDiario || 'Error al guardar')
@@ -57,7 +67,6 @@ export function BarraCarga({ horasDelDia }) {
     setGuardando(false)
   }
 
-  // Usa el prop si lo pasan (Hoy.jsx ya tiene los datos), sino usa el fetch propio
   const horas = horasDelDia ?? horasFetch ?? 0
   const porcentaje = Math.min((horas / limite) * 100, 100)
   const excede = horas > limite
@@ -134,20 +143,38 @@ export function BarraCarga({ horasDelDia }) {
           </div>
         </div>
       )}
+
+      {/* Modal conflicto tras cambiar límite */}
+      {conflictoLimite && (
+        <ModalConflicto
+          conflicto={conflictoLimite}
+          nuevasHoras={0}
+          modoLimite
+          onElgirFecha={() => setConflictoLimite(null)}
+          onAjustarHoras={() => {
+            setConflictoLimite(null)
+            setConfigurando(true)
+            setNuevoLimite(String(limite))
+            setErrorInput('')
+            setOk(false)
+          }}
+          onGuardarIgual={() => setConflictoLimite(null)}
+        />
+      )}
     </>
   )
 }
 
-// ─── Modal de conflicto flotante (se usa desde Actividad.jsx) ────────────────
-export function ModalConflicto({ conflicto, nuevasHoras, onElgirFecha, onAjustarHoras, onGuardarIgual }) {
+// ─── Modal de conflicto flotante ─────────────────────────────────────────────
+export function ModalConflicto({ conflicto, nuevasHoras, onElgirFecha, onAjustarHoras, onGuardarIgual, modoLimite }) {
   const [feedback, setFeedback] = useState(null)
 
   if (!conflicto) return null
 
   function accion(tipo) {
     const msgs = {
-      fecha: '📅 Abriendo el formulario para elegir otra fecha...',
-      horas: '✏️ Puedes cambiar las horas en el formulario.',
+      fecha: modoLimite ? '📅 Ve a tus tareas para reprogramar...' : '📅 Abriendo el formulario para elegir otra fecha...',
+      horas: modoLimite ? '⚙️ Abriendo configuración de límite...' : '✏️ Puedes cambiar las horas en el formulario.',
       igual: '✓ Guardado. El límite se supera ese día.',
     }
     setFeedback(msgs[tipo])
@@ -170,26 +197,32 @@ export function ModalConflicto({ conflicto, nuevasHoras, onElgirFecha, onAjustar
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
               <span style={{ fontSize: '1.4rem' }}>⚠️</span>
-              <p style={{ fontSize: '1rem', fontWeight: 800, color: '#f04a4a' }}>Ese día quedaría sobrecargado</p>
+              <p style={{ fontSize: '1rem', fontWeight: 800, color: '#f04a4a' }}>
+                {modoLimite ? 'Tu carga de hoy supera el nuevo límite' : 'Ese día quedaría sobrecargado'}
+              </p>
             </div>
             <div style={{ background: 'rgba(240,74,74,0.08)', border: '1px solid rgba(240,74,74,0.2)', borderRadius: 10, padding: '12px 14px', marginBottom: 16 }}>
               <p style={{ fontSize: '0.9rem', color: '#f0eff5', fontWeight: 600, marginBottom: 4 }}>
-                Quedarías con <span style={{ color: '#f04a4a' }}>{conflicto.total}h planificadas</span> (límite {conflicto.limite}h)
+                {modoLimite
+                  ? <>Tienes <span style={{ color: '#f04a4a' }}>{conflicto.total}h planificadas hoy</span> (límite {conflicto.limite}h)</>
+                  : <>Quedarías con <span style={{ color: '#f04a4a' }}>{conflicto.total}h planificadas</span> (límite {conflicto.limite}h)</>}
               </p>
               <p style={{ fontSize: '0.8rem', color: '#9998a8' }}>
-                Ya tienes {conflicto.horasActuales}h en ese día · Esta tarea suma {nuevasHoras}h más
+                {modoLimite
+                  ? `Estás ${(conflicto.total - conflicto.limite).toFixed(1)}h por encima del nuevo límite`
+                  : `Ya tienes ${conflicto.horasActuales}h en ese día · Esta tarea suma ${nuevasHoras}h más`}
               </p>
             </div>
             <p style={{ fontSize: '0.82rem', color: '#9998a8', marginBottom: 16 }}>¿Qué quieres hacer?</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <button onClick={() => accion('fecha')} style={btnOpcion('#a78bfa', 'rgba(167,139,250,0.12)', 'rgba(167,139,250,0.4)')}>
-                📅 Mover a otro día
+                {modoLimite ? '📅 Reprogramar alguna tarea' : '📅 Mover a otro día'}
               </button>
               <button onClick={() => accion('horas')} style={btnOpcion('#60a5fa', 'rgba(96,165,250,0.1)', 'rgba(96,165,250,0.3)')}>
-                ✏️ Reducir las horas
+                {modoLimite ? '⚙️ Cambiar límite diario' : '✏️ Reducir las horas'}
               </button>
               <button onClick={() => accion('igual')} style={btnOpcion('#f07070', 'rgba(240,74,74,0.08)', 'rgba(240,74,74,0.3)')}>
-                🚀 Guardar igual
+                🚀 Dejar igual
               </button>
             </div>
           </>
