@@ -124,7 +124,12 @@ function TarjetaKanban({ sub, color, chip, navigate }) {
       <p style={{ fontSize: '0.88rem', fontWeight: 600, color: '#f0eff5', marginBottom: 4, lineHeight: 1.4 }}>{sub.nombre}</p>
       <p style={{ fontSize: '0.74rem', color: '#8b8a9a', marginBottom: 8 }}>{sub.actividadTitulo} · {sub.actividadCurso}</p>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', background: `${color}22`, color, padding: '2px 8px', borderRadius: 20 }}>{chip}</span>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', background: `${color}22`, color, padding: '2px 8px', borderRadius: 20 }}>{chip}</span>
+          {sub.estado === 'pospuesto' && (
+            <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', background: 'rgba(240,165,0,0.15)', color: '#f0a500', padding: '2px 8px', borderRadius: 20 }}>Pospuesto</span>
+          )}
+        </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {sub.hora && <span style={{ fontSize: '0.72rem', color, fontWeight: 700 }}>{formatHora12(sub.hora)}</span>}
           {sub.horas && <span style={{ fontSize: '0.74rem', color: '#8b8a9a', fontWeight: 600 }}>{sub.horas}h</span>}
