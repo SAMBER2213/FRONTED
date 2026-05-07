@@ -113,6 +113,10 @@ function TarjetaKanban({ sub, color, chip, navigate }) {
   return (
     <div
       onClick={() => navigate(`/actividad/${sub.actividadId}`)}
+      onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && navigate(`/actividad/${sub.actividadId}`)}
+      tabIndex={0}
+      role="button"
+      aria-label={`Ver actividad ${sub.nombre}`}
       style={{ background: '#1a1a24', border: '1px solid #2a2a38', borderLeft: `3px solid ${color}`, borderRadius: 10, padding: '12px 14px', cursor: 'pointer', transition: 'background 0.15s' }}
       onMouseEnter={e => e.currentTarget.style.background = '#21212e'}
       onMouseLeave={e => e.currentTarget.style.background = '#1a1a24'}

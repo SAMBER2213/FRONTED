@@ -134,7 +134,7 @@ export default function Actividades() {
               return (
                 <div key={act.id} style={tarjetaActividad(vencida)}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 12 }}>
-                    <div style={{ flex: 1, cursor: 'pointer' }} onClick={() => navigate(`/actividad/${act.id}`)}>
+                    <div style={{ flex: 1, cursor: 'pointer' }} onClick={() => navigate(`/actividad/${act.id}`)} tabIndex={0} role="button" aria-label={`Ver actividad ${act.titulo}`} onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && navigate(`/actividad/${act.id}`)}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                         <p style={{ fontSize: '1rem', fontWeight: 700, color: '#f0eff5' }}>{act.titulo}</p>
                         {vencida && <Chip texto="VENCIDA" color="#f04a4a" />}
