@@ -314,8 +314,15 @@ export default function Actividad() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
               <div>
-                <label style={lbl}>Fecha (opcional)</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <label style={{ ...lbl, marginBottom: 0 }}>Fecha</label>
+                  <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#a78bfa', background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.3)', borderRadius: 20, padding: '1px 8px' }}>Recomendado</span>
+                </div>
                 <DateInput value={nuevaSub.fecha} onChange={e => setNuevaSub({ ...nuevaSub, fecha: e.target.value })} style={inp} />
+                <p style={{ fontSize: '0.73rem', color: '#6b6a7a', marginTop: 5, display: 'flex', alignItems: 'flex-start', gap: 5, lineHeight: 1.4, margin: '5px 0 0' }}>
+                  <span style={{ color: '#a78bfa', flexShrink: 0 }}>ℹ</span>
+                  Con fecha, aparecerá en la vista Hoy.
+                </p>
               </div>
               <div>
                 <label style={lbl}>Horas de estudio</label>

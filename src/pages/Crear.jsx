@@ -180,7 +180,7 @@ export default function Crear() {
                 value={form.curso} onChange={e => setForm({ ...form, curso: e.target.value })} />
             </Campo>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <Campo label="Fecha límite *" error={errores.fechaLimite}>
+              <Campo label="Fecha límite *" error={errores.fechaLimite} ayuda="Sin fecha límite, la actividad no aparecerá en la vista Hoy ni en la priorización.">
                 <DateInput style={inputStyle(errores.fechaLimite)} value={form.fechaLimite}
                   onChange={e => setForm({ ...form, fechaLimite: e.target.value })} />
               </Campo>
@@ -225,7 +225,7 @@ export default function Crear() {
                   value={nuevaSub.nombre} onChange={e => setNuevaSub({ ...nuevaSub, nombre: e.target.value })} />
               </Campo>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 4 }}>
-                <Campo label="Fecha">
+                <Campo label="Fecha" badge="Recomendado" ayuda="Con fecha, la subtarea aparecerá en la vista Hoy.">
                   <DateInput style={inputStyle()} value={nuevaSub.fecha}
                     onChange={e => setNuevaSub({ ...nuevaSub, fecha: e.target.value })} />
                 </Campo>
@@ -258,12 +258,27 @@ export default function Crear() {
   )
 }
 
-function Campo({ label, error, children }) {
+function Campo({ label, error, ayuda, badge, children }) {
   return (
     <div style={{ marginBottom: 14 }}>
-      {label && <label style={{ display: 'block', fontSize: '0.82rem', color: '#8b8a9a', fontWeight: 600, marginBottom: 6 }}>{label}</label>}
+      {label && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+          <label style={{ display: 'block', fontSize: '0.82rem', color: '#8b8a9a', fontWeight: 600 }}>{label}</label>
+          {badge && (
+            <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#a78bfa', background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.3)', borderRadius: 20, padding: '1px 8px', letterSpacing: '0.03em' }}>
+              {badge}
+            </span>
+          )}
+        </div>
+      )}
       {children}
       {error && <p style={{ fontSize: '0.75rem', color: '#f07070', marginTop: 4, fontWeight: 500 }}>{error}</p>}
+      {ayuda && !error && (
+        <p style={{ fontSize: '0.73rem', color: '#6b6a7a', marginTop: 5, display: 'flex', alignItems: 'flex-start', gap: 5, lineHeight: 1.4 }}>
+          <span style={{ color: '#a78bfa', flexShrink: 0 }}>ℹ</span>
+          {ayuda}
+        </p>
+      )}
     </div>
   )
 }
