@@ -483,7 +483,7 @@ export default function Actividad() {
 
               {sub.estado === 'pendiente' ? (
                 <button onClick={() => { setAvance(sub); setNota('') }} style={btnSubtareaMorado}>
-                  Registrar
+                  Registrar / cambiar estado
                 </button>
               ) : (
                 <button onClick={() => registrarAvance(sub, 'pendiente')} style={btnSubtareaNeutro}>
