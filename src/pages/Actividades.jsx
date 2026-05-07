@@ -13,6 +13,9 @@ export default function Actividades() {
   const [error, setError] = useState(null)
   const [eliminando, setEliminando] = useState(null)
   const [cargaHoy, setCargaHoy] = useState(null)
+  const [actividadAEliminar, setActividadAEliminar] = useState(null)
+  const [mensajeExito, setMensajeExito] = useState('')
+  const [mensajeAccionError, setMensajeAccionError] = useState('')
 
   useEffect(() => {
     cargar()
@@ -25,6 +28,7 @@ export default function Actividades() {
   async function cargar() {
     setCargando(true)
     setError(null)
+
     try {
       const res = await fetch(`${BASE_URL}/api/actividades/`, { headers: getHeaders() })
       if (!res.ok) throw new Error()
@@ -32,65 +36,91 @@ export default function Actividades() {
     } catch {
       setError('No se pudo cargar las actividades. Intenta de nuevo.')
     }
+
     setCargando(false)
   }
 
-  async function eliminar(id) {
-    if (!confirm('¿Seguro que deseas eliminar esta actividad?')) return
-    setEliminando(id)
+  function pedirConfirmacionEliminar(actividad) {
+    setActividadAEliminar(actividad)
+    setMensajeAccionError('')
+  }
+
+  function cerrarConfirmacionEliminar() {
+    if (eliminando) return
+    setActividadAEliminar(null)
+    setMensajeAccionError('')
+  }
+
+  async function confirmarEliminarActividad() {
+    if (!actividadAEliminar) return
+
+    setEliminando(actividadAEliminar.id)
+    setMensajeAccionError('')
+
     try {
-      await fetch(`${BASE_URL}/api/actividades/${id}/`, { method: 'DELETE', headers: getHeaders() })
-      setActividades(actividades.filter(a => a.id !== id))
+      const res = await fetch(`${BASE_URL}/api/actividades/${actividadAEliminar.id}/`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+      })
+
+      if (!res.ok) throw new Error()
+
+      setActividades(actividades.filter(a => a.id !== actividadAEliminar.id))
+      setActividadAEliminar(null)
+      setMensajeExito('Actividad eliminada correctamente.')
+      setTimeout(() => setMensajeExito(''), 3200)
     } catch {
-      alert('Error al eliminar. Intenta de nuevo.')
+      setMensajeAccionError('No se pudo eliminar la actividad. Intenta de nuevo.')
+    } finally {
+      setEliminando(null)
     }
-    setEliminando(null)
   }
 
   return (
     <div style={layoutBase}>
       <Sidebar navigate={navigate} actual="actividades" />
+
       <main style={mainStyle}>
-        {/* Encabezado */}
         <div style={{ width: '100%', maxWidth: 720, marginBottom: 28 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
             <h2 style={tituloPagina}>Actividades</h2>
             <button onClick={() => navigate('/crear')} style={btnPrimario}>
-              ✏️ Nueva actividad
+              Nueva actividad
             </button>
           </div>
           <p style={subtituloPagina}>Todas tus actividades evaluativas</p>
         </div>
 
-        {/* Barra de carga diaria — misma que en la vista Hoy */}
         <div style={{ width: '100%', maxWidth: 720 }}>
           <BarraCarga horasDelDia={cargaHoy} />
         </div>
 
-        {/* Estado: cargando */}
         {cargando && <SpinnerCarga texto="Cargando actividades..." />}
 
-        {/* Estado: error */}
         {error && (
           <div style={tarjetaError}>
-            <p style={{ color: '#f07070', marginBottom: 14, fontSize: '0.95rem', fontWeight: 600 }}>⚠️ {error}</p>
+            <p style={{ color: '#f07070', marginBottom: 14, fontSize: '0.95rem', fontWeight: 600 }}>
+              {error}
+            </p>
             <button onClick={cargar} style={btnError}>Reintentar</button>
           </div>
         )}
 
-        {/* Sin actividades — botón centrado */}
         {!cargando && !error && actividades.length === 0 && (
           <div style={{ textAlign: 'center', padding: '64px 24px' }}>
             <div style={{ fontSize: '3rem', marginBottom: 16 }}>📋</div>
-            <p style={{ fontSize: '1.15rem', fontWeight: 700, color: '#f0eff5', marginBottom: 8 }}>No tienes actividades aún</p>
-            <p style={{ fontSize: '0.88rem', color: '#8b8a9a', marginBottom: 28 }}>Crea tu primera actividad evaluativa</p>
+            <p style={{ fontSize: '1.15rem', fontWeight: 700, color: '#f0eff5', marginBottom: 8 }}>
+              No tienes actividades aún
+            </p>
+            <p style={{ fontSize: '0.88rem', color: '#8b8a9a', marginBottom: 28 }}>
+              Crea tu primera actividad evaluativa
+            </p>
             <button onClick={() => navigate('/crear')} style={btnPrimario}>
-              ✏️ Crear actividad
+              Crear actividad
             </button>
           </div>
         )}
 
-        {/* Lista de actividades */}
         {!cargando && !error && actividades.length > 0 && (
           <div style={{ width: '100%', maxWidth: 720 }}>
             {actividades.map(act => {
@@ -108,22 +138,24 @@ export default function Actividades() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                         <p style={{ fontSize: '1rem', fontWeight: 700, color: '#f0eff5' }}>{act.titulo}</p>
                         {vencida && <Chip texto="VENCIDA" color="#f04a4a" />}
-                        {pct === 100 && <Chip texto="✓ COMPLETADA" color="#3bbfa3" />}
+                        {pct === 100 && <Chip texto="COMPLETADA" color="#3bbfa3" />}
                       </div>
                       <p style={{ fontSize: '0.8rem', color: '#8b8a9a', fontWeight: 500 }}>
                         {act.tipo} · {act.curso}{act.fechaLimite ? ` · Vence ${act.fechaLimite}` : ''}
                       </p>
                     </div>
+
                     <button
-                      onClick={() => eliminar(act.id)}
+                      onClick={() => pedirConfirmacionEliminar(act)}
                       disabled={eliminando === act.id}
                       style={btnEliminar}
+                      aria-label={`Eliminar actividad ${act.titulo}`}
+                      title="Eliminar actividad"
                     >
                       {eliminando === act.id ? '...' : '🗑'}
                     </button>
                   </div>
 
-                  {/* Barra progreso */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{ flex: 1, height: 5, background: '#2a2a38', borderRadius: 10, overflow: 'hidden' }}>
                       <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 10, transition: 'width 0.3s' }} />
@@ -138,6 +170,24 @@ export default function Actividades() {
           </div>
         )}
       </main>
+
+      {mensajeExito && <Toast texto={mensajeExito} />}
+
+      {actividadAEliminar && (
+        <ModalConfirmacionEliminar
+          titulo="Eliminar actividad"
+          descripcion={
+            <>
+              Vas a eliminar <strong>{actividadAEliminar.titulo}</strong>. Esta acción también eliminará todas sus subtareas y no se puede deshacer.
+            </>
+          }
+          error={mensajeAccionError}
+          cargando={eliminando === actividadAEliminar.id}
+          textoConfirmar="Sí, eliminar"
+          onCancelar={cerrarConfirmacionEliminar}
+          onConfirmar={confirmarEliminarActividad}
+        />
+      )}
     </div>
   )
 }
@@ -171,7 +221,38 @@ function SpinnerCarga({ texto }) {
   )
 }
 
-// ─── Estilos ─────────────────────────────────────────────────
+function ModalConfirmacionEliminar({ titulo, descripcion, error, cargando, textoConfirmar, onCancelar, onConfirmar }) {
+  return (
+    <div style={overlayModal} role="dialog" aria-modal="true" aria-labelledby="modal-eliminar-titulo">
+      <div style={modalConfirmacion}>
+        <div style={iconoAdvertencia}>!</div>
+        <h3 id="modal-eliminar-titulo" style={tituloModal}>{titulo}</h3>
+        <p style={textoModal}>{descripcion}</p>
+
+        {error && <p style={textoErrorModal}>⚠️ {error}</p>}
+
+        <div style={accionesModal}>
+          <button type="button" onClick={onCancelar} disabled={cargando} style={btnCancelarModal}>
+            Cancelar
+          </button>
+          <button type="button" onClick={onConfirmar} disabled={cargando} style={btnConfirmarEliminar}>
+            {cargando ? 'Eliminando...' : textoConfirmar}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Toast({ texto }) {
+  return (
+    <div style={toast} role="status" aria-live="polite">
+      <span>✅</span>
+      <span>{texto}</span>
+    </div>
+  )
+}
+
 const layoutBase = {
   display: 'flex',
   minHeight: '100vh',
@@ -199,7 +280,7 @@ const tarjetaError = {
   border: '1px solid rgba(240,74,74,0.3)',
   borderRadius: 14,
   padding: '24px',
-  textAlign: 'center'
+  textAlign: 'center',
 }
 
 const btnError = {
@@ -243,4 +324,114 @@ const btnEliminar = {
   cursor: 'pointer',
   fontSize: '0.88rem',
   flexShrink: 0,
+}
+
+const overlayModal = {
+  position: 'fixed',
+  inset: 0,
+  background: 'rgba(0, 0, 0, 0.72)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  zIndex: 1000,
+  padding: 20,
+}
+
+const modalConfirmacion = {
+  width: '100%',
+  maxWidth: 440,
+  background: '#1a1a24',
+  border: '1px solid #2a2a38',
+  borderRadius: 18,
+  padding: '28px',
+  boxShadow: '0 24px 80px rgba(0,0,0,0.45)',
+}
+
+const iconoAdvertencia = {
+  width: 42,
+  height: 42,
+  borderRadius: '50%',
+  background: 'rgba(240,74,74,0.12)',
+  border: '1px solid rgba(240,74,74,0.35)',
+  color: '#f07070',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontSize: '1.35rem',
+  fontWeight: 900,
+  marginBottom: 14,
+}
+
+const tituloModal = {
+  fontSize: '1.2rem',
+  fontWeight: 800,
+  color: '#f0eff5',
+  marginBottom: 10,
+}
+
+const textoModal = {
+  fontSize: '0.9rem',
+  lineHeight: 1.6,
+  color: '#b9b8c8',
+  marginBottom: 18,
+}
+
+const textoErrorModal = {
+  background: 'rgba(240,74,74,0.08)',
+  border: '1px solid rgba(240,74,74,0.28)',
+  color: '#f07070',
+  borderRadius: 10,
+  padding: '10px 12px',
+  fontSize: '0.82rem',
+  fontWeight: 600,
+  marginBottom: 16,
+}
+
+const accionesModal = {
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: 10,
+}
+
+const btnCancelarModal = {
+  padding: '10px 18px',
+  background: 'none',
+  border: '1px solid #3a3a50',
+  borderRadius: 10,
+  color: '#d0cfdf',
+  fontSize: '0.88rem',
+  fontWeight: 700,
+  cursor: 'pointer',
+  fontFamily: 'DM Sans, sans-serif',
+}
+
+const btnConfirmarEliminar = {
+  padding: '10px 18px',
+  background: '#f04a4a',
+  border: '1px solid #f04a4a',
+  borderRadius: 10,
+  color: 'white',
+  fontSize: '0.88rem',
+  fontWeight: 800,
+  cursor: 'pointer',
+  fontFamily: 'DM Sans, sans-serif',
+}
+
+const toast = {
+  position: 'fixed',
+  right: 28,
+  bottom: 28,
+  zIndex: 1100,
+  display: 'flex',
+  alignItems: 'center',
+  gap: 10,
+  maxWidth: 360,
+  background: 'rgba(59,191,163,0.12)',
+  border: '1px solid rgba(59,191,163,0.38)',
+  color: '#3bbfa3',
+  borderRadius: 14,
+  padding: '13px 16px',
+  fontSize: '0.88rem',
+  fontWeight: 700,
+  boxShadow: '0 18px 50px rgba(0,0,0,0.35)',
 }
