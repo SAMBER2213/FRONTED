@@ -105,6 +105,7 @@ export default function Crear() {
     if (!form.titulo.trim()) e.titulo = 'El título es obligatorio'
     if (!form.tipo) e.tipo = 'Selecciona un tipo'
     if (!form.curso.trim()) e.curso = 'El curso es obligatorio'
+    if (!form.fechaLimite) e.fechaLimite = 'La fecha límite es obligatoria'
     return e
   }
 
@@ -179,8 +180,8 @@ export default function Crear() {
                 value={form.curso} onChange={e => setForm({ ...form, curso: e.target.value })} />
             </Campo>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <Campo label="Fecha límite">
-                <DateInput style={inputStyle()} value={form.fechaLimite}
+              <Campo label="Fecha límite *" error={errores.fechaLimite}>
+                <DateInput style={inputStyle(errores.fechaLimite)} value={form.fechaLimite}
                   onChange={e => setForm({ ...form, fechaLimite: e.target.value })} />
               </Campo>
               <Campo label="⏱ Horas estimadas">
