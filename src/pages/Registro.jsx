@@ -82,7 +82,7 @@ export default function Registro() {
 
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ fontSize: '2rem', marginBottom: 8 }}>📚</div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#7c6dfa', marginBottom: 4 }}>Planificador</h1>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#7c6dfa', marginBottom: 4 }}>PlanificaT</h1>
           <p style={{ fontSize: '0.85rem', color: '#6b6a7a' }}>Crea tu cuenta para empezar</p>
         </div>
 

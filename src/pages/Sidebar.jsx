@@ -15,7 +15,7 @@ export function Sidebar({ navigate, actual }) {
       <div style={{ padding: '0 8px 20px', borderBottom: '1px solid #2a2a32', marginBottom: 12 }}>
         <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#a78bfa', letterSpacing: '-0.02em', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
           <IconGrid color="#a78bfa" size={18} />
-          Planificador
+          PlanificaT
         </div>
         <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#f0eff5' }}>{nombre}</div>
         <div style={{ fontSize: '0.75rem', color: '#8b8a9a', marginTop: 2 }}>{correo}</div>

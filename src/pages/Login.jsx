@@ -88,7 +88,7 @@ export default function Login() {
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>🗂️</div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#f0eff5', letterSpacing: '-0.03em', marginBottom: 4 }}>
-            Planificador
+            PlanificaT
           </h1>
           <p style={{ fontSize: '0.85rem', color: '#8b8a9a' }}>Organiza tus actividades evaluativas</p>
         </div>
