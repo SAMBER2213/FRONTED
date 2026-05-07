@@ -68,7 +68,7 @@ export default function Actividades() {
         </div>
 
         {/* Estado: cargando */}
-        {cargando && <div style={estadoCentro}>Cargando actividades...</div>}
+        {cargando && <SpinnerCarga texto="Cargando actividades..." />}
 
         {/* Estado: error */}
         {error && (
@@ -150,6 +150,27 @@ function Chip({ texto, color }) {
   )
 }
 
+function SpinnerCarga({ texto }) {
+  return (
+    <>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner-ring {
+          width: 44px; height: 44px;
+          border: 4px solid rgba(167,139,250,0.15);
+          border-top-color: #a78bfa;
+          border-radius: 50%;
+          animation: spin 0.75s linear infinite;
+        }
+      `}</style>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '64px 24px', gap: 16 }}>
+        <div className="spinner-ring" />
+        <p style={{ color: '#8b8a9a', fontSize: '0.88rem', fontWeight: 500 }}>{texto}</p>
+      </div>
+    </>
+  )
+}
+
 // ─── Estilos ─────────────────────────────────────────────────
 const layoutBase = {
   display: 'flex',
@@ -170,7 +191,6 @@ const mainStyle = {
 
 const tituloPagina = { fontSize: '1.6rem', fontWeight: 800, color: '#f0eff5', letterSpacing: '-0.02em' }
 const subtituloPagina = { fontSize: '0.88rem', color: '#8b8a9a' }
-const estadoCentro = { textAlign: 'center', padding: '64px', color: '#8b8a9a', fontSize: '0.95rem' }
 
 const tarjetaError = {
   maxWidth: 480,
