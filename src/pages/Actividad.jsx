@@ -222,7 +222,7 @@ export default function Actividad() {
     navigate('/actividades')
   }
 
-  if (cargando) return <Pantalla>Cargando actividad...</Pantalla>
+  if (cargando) return <Pantalla cargando>Cargando actividad...</Pantalla>
   if (error) return <Pantalla error>{error}</Pantalla>
 
   const subtareas = actividad.subtareas || []
@@ -387,10 +387,29 @@ export default function Actividad() {
   )
 }
 
-function Pantalla({ children, error }) {
+function Pantalla({ children, error, cargando }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0f0f15', fontFamily: 'DM Sans, sans-serif' }}>
-      <p style={{ color: error ? '#f04a4a' : '#6b6a7a' }}>{children}</p>
+      {cargando ? (
+        <>
+          <style>{`
+            @keyframes spin { to { transform: rotate(360deg); } }
+            .spinner-ring {
+              width: 44px; height: 44px;
+              border: 4px solid rgba(167,139,250,0.15);
+              border-top-color: #a78bfa;
+              border-radius: 50%;
+              animation: spin 0.75s linear infinite;
+            }
+          `}</style>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+            <div className="spinner-ring" />
+            <p style={{ color: '#8b8a9a', fontSize: '0.88rem', fontWeight: 500 }}>{children}</p>
+          </div>
+        </>
+      ) : (
+        <p style={{ color: error ? '#f04a4a' : '#6b6a7a' }}>{children}</p>
+      )}
     </div>
   )
 }

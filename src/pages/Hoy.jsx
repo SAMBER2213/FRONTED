@@ -48,11 +48,7 @@ export default function Hoy() {
           <BarraCarga horasDelDia={data?.carga_hoy_horas} />
         </div>
 
-        {cargando && (
-          <div style={{ textAlign: 'center', padding: '48px', color: '#8b8a9a', fontSize: '0.95rem' }}>
-            Cargando tareas...
-          </div>
-        )}
+        {cargando && <SpinnerCarga texto="Cargando tareas..." />}
 
         {!cargando && error && (
           <div style={{ maxWidth: 480, margin: '0 auto', background: 'rgba(240,74,74,0.08)', border: '1px solid #f04a4a', borderRadius: 14, padding: '24px', textAlign: 'center' }}>
@@ -136,6 +132,27 @@ function TarjetaKanban({ sub, color, chip, navigate }) {
         </div>
       </div>
     </div>
+  )
+}
+
+function SpinnerCarga({ texto }) {
+  return (
+    <>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner-ring {
+          width: 44px; height: 44px;
+          border: 4px solid rgba(167,139,250,0.15);
+          border-top-color: #a78bfa;
+          border-radius: 50%;
+          animation: spin 0.75s linear infinite;
+        }
+      `}</style>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '64px 24px', gap: 16 }}>
+        <div className="spinner-ring" />
+        <p style={{ color: '#8b8a9a', fontSize: '0.88rem', fontWeight: 500 }}>{texto}</p>
+      </div>
+    </>
   )
 }
 
