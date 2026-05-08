@@ -29,7 +29,7 @@ export function Sidebar({ navigate, actual }) {
       </nav>
 
       <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid #2a2a32' }}>
-        <button onClick={cerrarSesion} style={logoutStyle}>
+        <button onClick={cerrarSesion} className="logout-btn" style={logoutStyle}>
           <IconLogout color="#f07070" size={16} />
           <span>Cerrar sesión</span>
         </button>
@@ -40,7 +40,7 @@ export function Sidebar({ navigate, actual }) {
 
 function NavBtn({ icon, label, active, onClick, color }) {
   return (
-    <button onClick={onClick} style={{
+    <button onClick={onClick} className="nav-btn" style={{
       padding: '10px 12px',
       borderRadius: 10,
       fontSize: '0.9rem',

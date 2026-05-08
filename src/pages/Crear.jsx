@@ -222,7 +222,7 @@ export default function Crear() {
               <p style={{ fontSize: '0.78rem', color: '#8b8a9a', fontWeight: 600, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Nueva subtarea</p>
               <Campo error={errores.nombre}>
                 <input style={inputStyle(errores.nombre)} placeholder="Nombre de la subtarea"
-                  value={nuevaSub.nombre} onChange={e => setNuevaSub({ ...nuevaSub, nombre: e.target.value })} />
+                  value={nuevaSub.nombre} onChange={e => setNuevaSub({ ...nuevaSub, nombre: e.target.value })} onKeyDown={e => e.key === 'Enter' && agregarSubtarea()} />
               </Campo>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 4 }}>
                 <Campo label="Fecha" badge="Recomendado" ayuda="Con fecha, la subtarea aparecerá en la vista Hoy.">

@@ -145,14 +145,14 @@ export default function Registro() {
           </Campo>
 
           <button onClick={registrar} disabled={cargando || exito}
-            style={{ width: '100%', padding: '12px', background: cargando ? '#4a4060' : '#7c6dfa', border: 'none', borderRadius: 10, color: 'white', fontSize: '0.95rem', fontWeight: 600, cursor: cargando ? 'not-allowed' : 'pointer', fontFamily: 'DM Sans, sans-serif', marginBottom: 16, marginTop: 4 }}>
+            style={{ width: '100%', padding: '12px', background: cargando ? '#4a4060' : '#7c6dfa', border: 'none', borderRadius: 10, color: 'white', fontSize: '0.95rem', fontWeight: 600, cursor: cargando ? 'not-allowed' : 'pointer', fontFamily: 'DM Sans, sans-serif', marginBottom: 16, marginTop: 4, transition: 'opacity 0.15s' }}>
             {cargando ? 'Creando cuenta...' : 'Crear cuenta'}
           </button>
 
           <p style={{ textAlign: 'center', fontSize: '0.85rem', color: '#6b6a7a' }}>
             ¿Ya tienes cuenta?{' '}
             <span onClick={() => navigate('/login')}
-              style={{ color: '#7c6dfa', cursor: 'pointer', fontWeight: 600 }}>
+              style={{ color: '#7c6dfa', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}>
               Inicia sesión
             </span>
           </p>
